@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
+
 export interface IUser {
-  _id?: string;
+  _id?: mongoose.Types.ObjectId | string;
   name: string;
   email: string;
   password: string;
@@ -8,10 +10,11 @@ export interface IUser {
   verificationToken?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  active: boolean;
 }
 
 export interface IMessage {
-  _id?: string;
+  _id?: mongoose.Types.ObjectId | string;
   conversationId: string;
   userId: string;
   content: string;
@@ -20,7 +23,7 @@ export interface IMessage {
 }
 
 export interface IConversation {
-  _id?: string;
+  _id?: mongoose.Types.ObjectId | string;
   name?: string;
   participants: string[];
   lastMessage?: string;
