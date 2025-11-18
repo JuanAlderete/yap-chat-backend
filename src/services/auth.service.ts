@@ -24,19 +24,25 @@ class AuthService {
       isVerified: false,
       verificationToken: verificationToken,
       active: true,
+      created_at: new Date(),
     });
     if (!user) {
       throw new Error("Error creating user");
     }
+    delete user.verificationToken;
     sendVerificationEmail(registerData.email, verificationToken);
-    return user;
+    return {
+      success: true,
+      message: "Usuario registrado. Revisa tu email para verificar tu cuenta.",
+      user: user,
+    };
   }
 
   static async login(loginData: LoginDTO) {
     if (!loginData.email || !loginData.password) {
       throw new Error("Missing required fields");
     }
-    const user = await UserRepository.findUserByEmail(loginData.email);
+    const user = await UserRepository.findUserByEmail(loginData.email, true);
     if (!user) {
       throw new Error("User not found");
     }
@@ -54,7 +60,11 @@ class AuthService {
       userId: user._id.toString(),
       email: user.email,
     });
-    return { token, user };
+    return {
+      success: true,
+      user: user,
+      token,
+    };
   }
 
   static async verifyEmail(token: string) {
@@ -68,6 +78,12 @@ class AuthService {
     user.isVerified = true;
     user.verificationToken = undefined;
     await UserRepository.updateUser(user._id as mongoose.Types.ObjectId, user);
-    return user;
+    return {
+      success: true,
+      message: "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.",
+      user: user,
+    };
   }
 }
+
+export default AuthService;

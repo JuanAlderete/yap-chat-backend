@@ -12,9 +12,20 @@ class UserRepository {
     }
   }
 
-  static async findUserByEmail(email: string) {
+  static async findUserByEmail(
+    email: string,
+    includePassword: boolean = false
+  ) {
     try {
-      return await Users.findOne({ email: email, active: true });
+      let query;
+      if (includePassword) {
+        query = Users.findOne({ email: email, active: true }).select(
+          "+password"
+        );
+      } else {
+        query = Users.findOne({ email: email, active: true });
+      }
+      return await query;
     } catch (error) {
       console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
       throw error;

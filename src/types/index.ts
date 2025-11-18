@@ -8,8 +8,8 @@ export interface IUser {
   avatar?: string;
   isVerified: boolean;
   verificationToken?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at: Date;
+  updated_at?: Date;
   active: boolean;
 }
 
@@ -18,8 +18,8 @@ export interface IMessage {
   conversationId: string;
   userId: string;
   content: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface IConversation {
@@ -28,6 +28,6 @@ export interface IConversation {
   participants: string[];
   lastMessage?: string;
   messages?: IMessage[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
