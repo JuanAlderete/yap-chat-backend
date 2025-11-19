@@ -29,12 +29,12 @@ class AuthService {
     if (!user) {
       throw new Error("Error creating user");
     }
-    delete user.verificationToken;
     sendVerificationEmail(registerData.email, verificationToken);
+    const { password, verificationToken: token, ...safeUser } = user;
     return {
       success: true,
       message: "Usuario registrado. Revisa tu email para verificar tu cuenta.",
-      user: user,
+      user: safeUser,
     };
   }
 
@@ -60,9 +60,11 @@ class AuthService {
       userId: user._id.toString(),
       email: user.email,
     });
+    const { password, ...safeUser } = user;
     return {
       success: true,
-      user: user,
+      message: "Login exitoso",
+      user: safeUser,
       token,
     };
   }
@@ -76,12 +78,13 @@ class AuthService {
       throw new Error("Invalid token");
     }
     user.isVerified = true;
-    user.verificationToken = undefined;
+    delete user.verificationToken;
     await UserRepository.updateUser(user._id as mongoose.Types.ObjectId, user);
+    const { password, ...safeUser } = user;
     return {
       success: true,
       message: "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.",
-      user: user,
+      user: safeUser,
     };
   }
 }

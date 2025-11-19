@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import envConfig from "./env";
 
-// Conectar a la base de datos
 export async function connectDB() {
   try {
     await mongoose.connect(envConfig.dbUri || "", {
