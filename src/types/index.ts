@@ -15,9 +15,11 @@ export interface IUser {
 
 export interface IMessage {
   _id?: mongoose.Types.ObjectId | string;
-  conversationId: string;
-  userId: string;
+  senderId: mongoose.Types.ObjectId | string;
+  conversationId: mongoose.Types.ObjectId | string;
   content: string;
+  isRead?: Boolean;
+  readAt?: Date;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -25,9 +27,34 @@ export interface IMessage {
 export interface IConversation {
   _id?: mongoose.Types.ObjectId | string;
   name?: string;
-  participants: string[];
+  participants: (mongoose.Types.ObjectId | string)[];
   lastMessage?: string;
+  lastMessageAt?: Date;
   messages?: IMessage[];
   created_at?: Date;
   updated_at?: Date;
+  isGroup?: Boolean;
+}
+
+export interface CreateConversationDTO {
+  name: string;
+  participantId: mongoose.Types.ObjectId | string;
+}
+
+export interface ConversationResponse {
+  success: boolean;
+  conversation: IConversation;
+}
+
+export interface ConversationListItem {
+  _id: mongoose.Types.ObjectId | string;
+  otherUser: IUser;
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  unreadCount?: number;
+}
+
+export interface IConversationPopulated
+  extends Omit<IConversation, "participants"> {
+  participants: IUser[];
 }

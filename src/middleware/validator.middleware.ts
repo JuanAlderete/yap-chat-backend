@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { validationResult, body } from "express-validator";
+import { validationResult, body, param } from "express-validator";
 
 const handleValidationErrors = (
   req: Request,
@@ -65,6 +65,39 @@ export const validateVerifyEmail = [
     .withMessage("Token is required")
     .isLength({ min: 6 })
     .withMessage("Token must be at least 6 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateCreateConversation = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ min: 3 })
+    .withMessage("Name must be at least 3 characters"),
+
+  body("participantId")
+    .trim()
+    .notEmpty()
+    .withMessage("ParticipantId is required")
+    .isMongoId()
+    .withMessage("Invalid participantId")
+    .isLength({ min: 24 })
+    .withMessage("ParticipantId must be at least 24 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateConversationId = [
+  param("id")
+    .trim()
+    .notEmpty()
+    .withMessage("Id is required")
+    .isMongoId()
+    .withMessage("Invalid id")
+    .isLength({ min: 24 })
+    .withMessage("Id must be at least 24 characters"),
 
   handleValidationErrors,
 ];
