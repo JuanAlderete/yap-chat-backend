@@ -13,6 +13,10 @@ const conversationSchema = new mongoose.Schema<IConversation>({
     type: String,
     default: null,
   },
+  lastMessageAt: {
+    type: Date,
+    default: null,
+  },
   messages: {
     type: Array<IMessage>,
     default: [],

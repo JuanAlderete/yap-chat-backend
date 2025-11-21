@@ -9,6 +9,7 @@ import {
   IUser,
 } from "../types";
 import UserRepository from "../repositories/user.repository";
+import MessageRepository from "../repositories/message.repository";
 
 class ConversationService {
   static async createConversation(
@@ -134,6 +135,7 @@ class ConversationService {
     if (!conversationId) {
       throw new Error("Missing conversationId");
     }
+    await MessageRepository.deleteMessagesByConversation(conversationId);
     const conversation = await ConversationRepository.deleteConversation(
       conversationId
     );

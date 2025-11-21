@@ -58,3 +58,26 @@ export interface IConversationPopulated
   extends Omit<IConversation, "participants"> {
   participants: IUser[];
 }
+
+export interface SendMessageDTO {
+  conversationId: mongoose.Types.ObjectId;
+  content: string;
+}
+
+export interface MessageResponse {
+  success: boolean;
+  message: IMessage;
+}
+
+export interface MessagesListResponse {
+  success: boolean;
+  messages: IMessage[];
+}
+
+export interface IMessagePopulated extends Omit<IMessage, "senderId"> {
+  senderId: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
+}

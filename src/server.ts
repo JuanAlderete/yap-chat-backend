@@ -5,6 +5,7 @@ import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/error.middleware";
 import conversationRoutes from "./routes/conversation.routes";
+import messagesRoutes from "./routes/message.routes";
 
 const app = express();
 
@@ -16,8 +17,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messagesRoutes);
 
 app.use(errorHandler);
 

@@ -19,6 +19,8 @@ const handleValidationErrors = (
   next();
 };
 
+// Intento de validaciones con express-validator
+
 export const validateRegister = [
   body("name")
     .trim()
@@ -93,4 +95,60 @@ export const validateConversationId = [
     .withMessage("Id must be at least 24 characters"),
 
   handleValidationErrors,
+];
+
+export const validateSendMessage = [
+  body("conversationId")
+    .notEmpty()
+    .withMessage("Conversation ID is required")
+    .isMongoId()
+    .withMessage("Invalid conversation ID"),
+
+  body("content")
+    .notEmpty()
+    .withMessage("Message content is required")
+    .trim()
+    .isLength({ min: 1, max: 5000 })
+    .withMessage("Message must be between 1 and 5000 characters"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateGetMessages = [
+  param("conversationId").isMongoId().withMessage("Invalid conversation ID"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateMessageId = [
+  param("id").isMongoId().withMessage("Invalid message ID"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
 ];
