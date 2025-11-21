@@ -17,7 +17,7 @@ const config: EnvConfig = {
   port: parseInt(process.env.PORT || "3000"),
   dbUri: process.env.MONGODB_URI || "",
   jwtSecret: process.env.JWT_SECRET || "",
-  jwtExpire: process.env.JWT_EXPIRE || "7d",
+  jwtExpire: process.env.JWT_EXPIRE || "86400",
   emailHost: process.env.EMAIL_HOST || "",
   emailUser: process.env.EMAIL_USER || "",
   emailPass: process.env.EMAIL_PASS || "",

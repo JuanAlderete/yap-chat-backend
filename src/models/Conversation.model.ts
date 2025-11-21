@@ -1,16 +1,13 @@
 import mongoose from "mongoose";
 import { IConversation, IMessage } from "../types";
+import Users from "./User.model";
 
 const conversationSchema = new mongoose.Schema<IConversation>({
   name: {
     type: String,
   },
   participants: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true },
   ],
   lastMessage: {
     type: String,

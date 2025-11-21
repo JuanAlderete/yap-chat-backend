@@ -4,6 +4,7 @@ import envConfig from "./config/env";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/error.middleware";
+import conversationRoutes from "./routes/conversation.routes";
 
 const app = express();
 
@@ -15,6 +16,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/conversations", conversationRoutes);
 
 app.use(errorHandler);
 

@@ -15,7 +15,7 @@ class ConversationService {
     currentUserId: mongoose.Types.ObjectId | string,
     conversationData: CreateConversationDTO
   ) {
-    if (!conversationData.name || !conversationData.participantId) {
+    if (!currentUserId || !conversationData.participantId) {
       throw new Error("Missing required fields");
     }
     if (currentUserId === conversationData.participantId) {
@@ -48,11 +48,7 @@ class ConversationService {
     if (!newConversation) {
       throw new Error("Error creating conversation");
     }
-    return {
-      success: true,
-      message: "Conversation created successfully",
-      conversation: conversation,
-    };
+    return newConversation;
   }
 
   static async findConversationById(id: mongoose.Types.ObjectId) {
@@ -65,11 +61,7 @@ class ConversationService {
     if (!conversation) {
       throw new Error("Conversation not found");
     }
-    return {
-      success: true,
-      message: "Conversation found successfully",
-      conversation: conversation,
-    };
+    return conversation;
   }
 
   static async findAllConversationsByUser(userId: mongoose.Types.ObjectId) {
@@ -81,11 +73,7 @@ class ConversationService {
         userId as mongoose.Types.ObjectId
       );
     if (!conversations || conversations.length === 0) {
-      return {
-        success: true,
-        message: "No conversations found",
-        conversations: [],
-      };
+      return [];
     }
     const formattedConversations: ConversationListItem[] = conversations.map(
       (conv) => {
@@ -104,11 +92,7 @@ class ConversationService {
         };
       }
     );
-    return {
-      success: true,
-      message: "Conversations found successfully",
-      conversations: formattedConversations,
-    };
+    return formattedConversations;
   }
 
   static async findConversationByParticipants(
@@ -126,11 +110,7 @@ class ConversationService {
     if (!conversation) {
       throw new Error("Conversation not found");
     }
-    return {
-      success: true,
-      message: "Conversation found successfully",
-      conversation: conversation,
-    };
+    return conversation;
   }
 
   static async updateLastMessage(
@@ -147,11 +127,7 @@ class ConversationService {
     if (!conversation) {
       throw new Error("Error updating conversation");
     }
-    return {
-      success: true,
-      message: "Last message updated successfully",
-      conversation: conversation,
-    };
+    return conversation;
   }
 
   static async deleteConversation(conversationId: mongoose.Types.ObjectId) {
@@ -164,11 +140,7 @@ class ConversationService {
     if (!conversation) {
       throw new Error("Error deleting conversation");
     }
-    return {
-      success: true,
-      message: "Conversation deleted successfully",
-      conversation: conversation,
-    };
+    return conversation;
   }
 }
 

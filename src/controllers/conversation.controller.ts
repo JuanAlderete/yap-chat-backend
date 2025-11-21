@@ -1,9 +1,13 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import ConversationService from "../services/conversation.service";
 import mongoose from "mongoose";
 
 class ConversationController {
-  static async createConversation(request: Request, response: Response) {
+  static async createConversation(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
     try {
       const userData = request.user;
       if (!userData) {
@@ -14,7 +18,7 @@ class ConversationController {
         });
       }
       const conversationData = request.body;
-      if (!conversationData.name || !conversationData.participantId) {
+      if (!conversationData.participantId) {
         return response.status(400).json({
           success: false,
           message: "Missing required fields",
@@ -22,28 +26,12 @@ class ConversationController {
         });
       }
       const newConversation = await ConversationService.createConversation(
-        userData._id,
+        userData.userId,
         conversationData
       );
-      return response.status(200).json({
-        success: true,
-        message: "Conversation created successfully",
-        conversation: newConversation,
-      });
+      return response.json(newConversation);
     } catch (error: any) {
-      if (error.status) {
-        return response.status(error.status).json({
-          success: false,
-          message: error.message,
-          status: error.status,
-        });
-      }
-
-      return response.status(500).json({
-        success: false,
-        message: "Error interno del servidor",
-        status: 500,
-      });
+      next(error);
     }
   }
 
@@ -58,13 +46,14 @@ class ConversationController {
         });
       }
       const conversations =
-        await ConversationService.findAllConversationsByUser(userData._id);
+        await ConversationService.findAllConversationsByUser(userData.userId);
       return response.status(200).json({
         success: true,
         message: "Conversations found successfully",
-        conversations: conversations,
+        conversations,
       });
     } catch (error: any) {
+      console.log(error);
       if (error.status) {
         return response.status(error.status).json({
           success: false,

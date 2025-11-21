@@ -21,9 +21,9 @@ class UserRepository {
       if (includePassword) {
         query = Users.findOne({ email: email, active: true }).select(
           "+password"
-        );
+        ).lean();
       } else {
-        query = Users.findOne({ email: email, active: true });
+        query = Users.findOne({ email: email, active: true }).lean();
       }
       return await query;
     } catch (error) {

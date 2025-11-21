@@ -70,17 +70,15 @@ class AuthService {
   }
 
   static async verifyEmail(token: string) {
-    if (!token) {
-      throw new Error("Missing token");
-    }
+    if (!token) throw new Error("Missing token");
+
     const user = await UserRepository.findByVerificationToken(token);
-    if (!user) {
-      throw new Error("Invalid token");
-    }
+    if (!user) throw new Error("Invalid token");
     user.isVerified = true;
-    delete user.verificationToken;
-    await UserRepository.updateUser(user._id as mongoose.Types.ObjectId, user);
-    const { password, ...safeUser } = user;
+    user.verificationToken = undefined;
+    await user.save();
+    const { password, ...safeUser } = user.toObject();
+
     return {
       success: true,
       message: "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.",

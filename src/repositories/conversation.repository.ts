@@ -10,9 +10,8 @@ import {
 class ConversationRepository {
   static async createConversation(conversationData: IConversation) {
     try {
-      return (await Conversations.create(conversationData)).populate(
-        "participants"
-      );
+      const conversation = await Conversations.create(conversationData);
+      return conversation.populate("participants");
     } catch (error) {
       console.error("[SERVER ERROR]: no se pudo crear la conversación", error);
       throw error;
@@ -88,11 +87,10 @@ class ConversationRepository {
     try {
       const conversations = await Conversations.find({ participants: userId })
         .sort({ lastMessageAt: -1 })
-        .populate("participants");
-      return conversations.map((conv: any) => ({
-        ...conv,
-        participants: conv.participants as IUser[],
-      })) as IConversationPopulated[];
+        .populate<{ participants: IUser[] }>("participants")
+        .lean();
+
+      return conversations;
     } catch (error) {
       console.error(
         "[SERVER ERROR]: no se pudo encontrar todas las conversaciones",
