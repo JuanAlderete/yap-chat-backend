@@ -20,3 +20,8 @@ export interface JWTPayload {
   userId: string;
   email: string;
 }
+
+export interface UpdateProfileDTO {
+  name?: string;
+  avatar?: string;
+}

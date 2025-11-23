@@ -1,5 +1,5 @@
 import UserRepository from "../repositories/user.repository";
-import { LoginDTO, RegisterDTO } from "../types/auth.types";
+import { LoginDTO, RegisterDTO, UpdateProfileDTO } from "../types/auth.types";
 import { sendVerificationEmail } from "../utils/email.util";
 import { generateToken } from "../utils/jwt.util";
 import { generateRandomToken } from "../utils/crypto.util";
@@ -83,6 +83,21 @@ class AuthService {
       success: true,
       message: "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.",
       user: safeUser,
+    };
+  }
+
+  static async updateProfile(userId: string, updateData: UpdateProfileDTO) {
+    if (!updateData.name && !updateData.avatar) {
+      throw new Error("No data provided for update");
+    }
+    const updatedUser = await UserRepository.updateUser(userId, updateData);
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+    return {
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
     };
   }
 }

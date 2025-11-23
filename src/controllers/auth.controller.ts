@@ -92,6 +92,23 @@ class AuthController {
       next(error);
     }
   }
+
+  static async updateProfile(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = request.user._id;
+      const { name, avatar } = request.body;
+
+      const result = await AuthService.updateProfile(userId, { name, avatar });
+
+      response.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }
 
 export default AuthController;

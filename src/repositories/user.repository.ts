@@ -19,9 +19,9 @@ class UserRepository {
     try {
       let query;
       if (includePassword) {
-        query = Users.findOne({ email: email, active: true }).select(
-          "+password"
-        ).lean();
+        query = Users.findOne({ email: email, active: true })
+          .select("+password")
+          .lean();
       } else {
         query = Users.findOne({ email: email, active: true }).lean();
       }
@@ -41,13 +41,16 @@ class UserRepository {
     }
   }
 
-  static async updateUser(id: mongoose.Types.ObjectId, userData: IUser) {
+  static async updateUser(
+    userId: string,
+    updateData: { name?: string; avatar?: string }
+  ) {
     try {
-      return await Users.findOneAndUpdate(
-        { _id: id, active: true },
-        { $set: userData },
-        { new: true }
-      );
+      return await Users.findByIdAndUpdate(
+        userId,
+        { $set: updateData },
+        { new: true, runValidators: true }
+      ).select("-password");
     } catch (error) {
       console.error("[SERVER ERROR]: no se pudo actualizar el usuario", error);
       throw error;
