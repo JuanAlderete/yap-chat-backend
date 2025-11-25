@@ -86,11 +86,11 @@ class AuthService {
     };
   }
 
-  static async updateProfile(userId: string, updateData: UpdateProfileDTO) {
-    if (!updateData.name && !updateData.avatar) {
+  static async updateProfile(userId: string, updated_ata: UpdateProfileDTO) {
+    if (!updated_ata.name && !updated_ata.avatar) {
       throw new Error("No data provided for update");
     }
-    const updatedUser = await UserRepository.updateUser(userId, updateData);
+    const updatedUser = await UserRepository.updateUser(userId, updated_ata);
     if (!updatedUser) {
       throw new Error("User not found");
     }

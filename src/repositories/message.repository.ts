@@ -41,7 +41,7 @@ class MessageRepository {
   static async updateMessage(messageId: string, content: string){
     return await Messages.findByIdAndUpdate(
       messageId,
-      { content, updatedAt: new Date() },
+      { content, updated_at: new Date() },
       { new: true }
     )
     .populate('senderId', 'name avatar')

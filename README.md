@@ -110,7 +110,7 @@ POST /auth/register
     "name": "Juan Pérez",
     "email": "juan@example.com",
     "isVerified": false,
-    "createdAt": "2024-11-21T10:30:00.000Z"
+    "created_at": "2024-11-21T10:30:00.000Z"
   }
 }
 ```
@@ -310,7 +310,7 @@ Authorization: Bearer {token}
     ],
     "lastMessage": null,
     "lastMessageAt": null,
-    "createdAt": "2024-11-21T10:45:00.000Z"
+    "created_at": "2024-11-21T10:45:00.000Z"
   }
 }
 ```
@@ -474,7 +474,7 @@ Authorization: Bearer {token}
     "senderId": "673f8a1b2c3d4e5f6a7b8c9d",
     "content": "Hola, ¿cómo estás?",
     "isRead": false,
-    "createdAt": "2024-11-21T11:00:00.000Z"
+    "created_at": "2024-11-21T11:00:00.000Z"
   }
 }
 ```
@@ -520,7 +520,7 @@ Authorization: Bearer {token}
       "content": "Hola, ¿cómo estás?",
       "isRead": true,
       "readAt": "2024-11-21T11:01:00.000Z",
-      "createdAt": "2024-11-21T11:00:00.000Z"
+      "created_at": "2024-11-21T11:00:00.000Z"
     }
   ],
   "pagination": {
@@ -586,8 +586,8 @@ Authorization: Bearer {token}
   avatar: String,            // URL o Base64 (opcional)
   isVerified: Boolean,       // Default: false
   verificationToken: String, // Token para verificar email
-  createdAt: Date,
-  updatedAt: Date
+  created_at: Date,
+  updated_at: Date
 }
 ```
 
@@ -599,8 +599,8 @@ Authorization: Bearer {token}
   participants: [ObjectId],  // Array de 2 user IDs
   lastMessage: String,       // Contenido del último mensaje
   lastMessageAt: Date,       // Fecha del último mensaje
-  createdAt: Date,
-  updatedAt: Date
+  created_at: Date,
+  updated_at: Date
 }
 ```
 
@@ -614,8 +614,8 @@ Authorization: Bearer {token}
   content: String,           // Texto del mensaje
   isRead: Boolean,           // Default: false
   readAt: Date,              // Cuando fue leído
-  createdAt: Date,
-  updatedAt: Date
+  created_at: Date,
+  updated_at: Date
 }
 ```
 

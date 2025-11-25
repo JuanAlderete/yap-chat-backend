@@ -43,12 +43,12 @@ class UserRepository {
 
   static async updateUser(
     userId: string,
-    updateData: { name?: string; avatar?: string }
+    updated_ata: { name?: string; avatar?: string }
   ) {
     try {
       return await Users.findByIdAndUpdate(
         userId,
-        { $set: updateData },
+        { $set: updated_ata },
         { new: true, runValidators: true }
       ).select("-password");
     } catch (error) {
