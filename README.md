@@ -679,12 +679,6 @@ Variables de entorno necesarias en producción:
 
 ---
 
-## 📄 Licencia
-
-ISC
-
----
-
 ## 🤝 Contribuciones
 
 Este proyecto es parte de un trabajo final de curso. No se aceptan contribuciones externas en este momento.
