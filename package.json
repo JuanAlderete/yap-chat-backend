@@ -21,14 +21,14 @@
     "express-validator": "^7.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.20.0",
-    "nodemailer": "^7.0.10"
+    "nodemailer": "^7.0.10",
+    "@types/node": "^24.10.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.10.1",
     "@types/nodemailer": "^7.0.3",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
