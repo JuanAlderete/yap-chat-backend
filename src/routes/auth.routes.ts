@@ -25,4 +25,6 @@ authRoutes.put(
   AuthController.updateProfile
 );
 
+authRoutes.get("/users/search", authenticate, AuthController.searchUsers);
+
 export default authRoutes;

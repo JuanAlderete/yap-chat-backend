@@ -100,6 +100,19 @@ class AuthService {
       user: updatedUser,
     };
   }
+
+  static async searchUsers(query: string, currentUserId: string) {
+    if (!query || query.trim().length < 2) {
+      throw new Error("Query must be at least 2 characters");
+    }
+
+    const users = await UserRepository.searchUsers(query.trim(), currentUserId);
+
+    return {
+      success: true,
+      users,
+    };
+  }
 }
 
 export default AuthService;

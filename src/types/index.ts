@@ -81,3 +81,7 @@ export interface IMessagePopulated extends Omit<IMessage, "senderId"> {
     avatar?: string;
   };
 }
+
+export interface UpdateMessageDTO {
+  content: string;
+}

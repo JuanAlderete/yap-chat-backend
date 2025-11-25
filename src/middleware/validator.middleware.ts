@@ -173,3 +173,24 @@ export const validateUpdateProfile = [
     next();
   },
 ];
+
+export const validateUpdateMessage = [
+  param('id')
+    .isMongoId().withMessage('Invalid message ID'),
+  
+  body('content')
+    .notEmpty().withMessage('Message content is required')
+    .trim()
+    .isLength({ min: 1, max: 5000 }).withMessage('Message must be between 1 and 5000 characters'),
+  
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+    next();
+  }
+];

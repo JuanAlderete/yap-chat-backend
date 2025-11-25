@@ -4,6 +4,7 @@ import {
   validateGetMessages,
   validateMessageId,
   validateSendMessage,
+  validateUpdateMessage
 } from "../middleware/validator.middleware";
 import MessageController from "../controllers/message.controller";
 
@@ -23,6 +24,12 @@ messagesRoutes.delete(
   "/:id",
   validateMessageId,
   MessageController.deleteMessage
+);
+
+messagesRoutes.put(
+  "/:id",
+  validateUpdateMessage,
+  MessageController.updateMessage
 );
 
 export default messagesRoutes;

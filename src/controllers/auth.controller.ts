@@ -99,10 +99,34 @@ class AuthController {
     next: NextFunction
   ) {
     try {
-      const userId = request.user._id;
+      const userId = request.user.userId;
       const { name, avatar } = request.body;
 
       const result = await AuthService.updateProfile(userId, { name, avatar });
+
+      response.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async searchUsers(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { query } = request.query;
+      const userId = request.user.userId;
+
+      if (!query || typeof query !== "string") {
+        return response.status(400).json({
+          success: false,
+          message: "Query parameter is required",
+        });
+      }
+
+      const result = await AuthService.searchUsers(query, userId);
 
       response.status(200).json(result);
     } catch (error: any) {

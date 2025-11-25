@@ -59,33 +59,14 @@ class MessageController {
     response: Response,
     next: NextFunction
   ) {
-    const messageId = request.params.id;
     try {
-      if (!messageId) {
-        return response.status(400).json({
-          success: false,
-          message: "Missing messageId in request parameters.",
-        });
-      }
-      const messageData = request.body;
-      if (!messageData) {
-        return response.status(400).json({
-          success: false,
-          message: "Missing messageData in request body.",
-        });
-      }
-      const messageObjectId = new mongoose.Types.ObjectId(messageId);
-      const message = await MessageService.updateMessage(
-        messageObjectId,
-        messageData
-      );
-      return response.status(200).json({
-        success: true,
-        message: "Message updated successfully",
-        messageContent: message,
-      });
+      const { id } = request.params;
+      const { content } = request.body;
+      const userId = request.user.userId;
+      const result = await MessageService.updateMessage(id, userId, content);
+      response.status(200).json(result);
     } catch (error: any) {
-      console.error("Error updating message:", error);
+      console.error("Error updating message:", error.message);
       next(error);
     }
   }

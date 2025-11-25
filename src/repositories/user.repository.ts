@@ -86,6 +86,24 @@ class UserRepository {
       throw error;
     }
   }
+
+  static async searchUsers(query: string, currentUserId: string) {
+    try {
+      return await Users.find({
+        _id: { $ne: currentUserId },
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+        isVerified: true,
+      })
+        .select("name email avatar")
+        .limit(10);
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
+      throw error;
+    }
+  }
 }
 
 export default UserRepository;

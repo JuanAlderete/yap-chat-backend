@@ -66,17 +66,39 @@ class MessageService {
   }
 
   static async updateMessage(
-    id: mongoose.Types.ObjectId,
-    messageData: IMessage
+    messageId: string,
+    userId: string,
+    content: string
   ) {
-    if (!id || !messageData) {
-      throw new Error("Missing required fields");
+    if (!content || content.trim().length === 0) {
+      throw new Error("Message content cannot be empty");
     }
-    const message = await MessageRepository.updateMessage(id, messageData);
+    if (content.length > 5000) {
+      throw new Error("Message content is too long");
+    }
+    const ObjectMessageId = new mongoose.Types.ObjectId(messageId);
+    const message = await MessageRepository.findMessageById(ObjectMessageId);
     if (!message) {
-      throw new Error("Error updating message");
+      throw new Error("Message not found");
     }
-    return message;
+    const senderId =
+      typeof message.senderId === "object" &&
+      message.senderId !== null &&
+      "_id" in message.senderId
+        ? message.senderId._id
+        : message.senderId;
+    if (senderId.toString() !== userId) {
+      throw new Error("You can only edit your own messages");
+    }
+    const updatedMessage = await MessageRepository.updateMessage(
+      messageId,
+      content.trim()
+    );
+
+    return {
+      success: true,
+      message: updatedMessage,
+    };
   }
 
   static async deleteMessage(messageId: string, userId: string) {

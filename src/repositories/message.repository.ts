@@ -38,21 +38,15 @@ class MessageRepository {
     }
   }
 
-  static async updateMessage(
-    id: mongoose.Types.ObjectId,
-    messageData: IMessage
-  ) {
-    try {
-      return await Messages.findOneAndUpdate(
-        { _id: id },
-        { $set: messageData },
-        { new: true }
-      );
-    } catch (error) {
-      console.error("[SERVER ERROR]: no se pudo actualizar el mensaje", error);
-      throw error;
-    }
-  }
+  static async updateMessage(messageId: string, content: string){
+    return await Messages.findByIdAndUpdate(
+      messageId,
+      { content, updatedAt: new Date() },
+      { new: true }
+    )
+    .populate('senderId', 'name avatar')
+    .lean();
+  };
 
   static async deleteMessage(id: mongoose.Types.ObjectId) {
     try {
