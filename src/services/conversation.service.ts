@@ -10,6 +10,12 @@ import {
 } from "../types";
 import UserRepository from "../repositories/user.repository";
 import MessageRepository from "../repositories/message.repository";
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+} from "../utils/appError.util";
 
 class ConversationService {
   static async createConversation(
@@ -17,16 +23,16 @@ class ConversationService {
     conversationData: CreateConversationDTO
   ) {
     if (!currentUserId || !conversationData.participantId) {
-      throw new Error("Missing required fields");
+      throw new BadRequestError("Missing required fields");
     }
     if (currentUserId === conversationData.participantId) {
-      throw new Error("You cannot create a conversation with yourself");
+      throw new ConflictError("Cannot create conversation with yourself");
     }
     const participant = await UserRepository.findUserById(
       conversationData.participantId as mongoose.Types.ObjectId
     );
     if (!participant) {
-      throw new Error("Participant not found");
+      throw new NotFoundError("Participant not found");
     }
     const conversation =
       await ConversationRepository.findConversationByParticipants(
@@ -34,7 +40,7 @@ class ConversationService {
         conversationData.participantId as mongoose.Types.ObjectId
       );
     if (conversation) {
-      throw new Error("Conversation already exists");
+      throw new ConflictError("Conversation already exists");
     }
     const conversationDataToCreate: IConversation = {
       name: conversationData.name,
@@ -47,27 +53,27 @@ class ConversationService {
       conversationDataToCreate
     );
     if (!newConversation) {
-      throw new Error("Error creating conversation");
+      throw new InternalServerError("Error creating conversation");
     }
     return newConversation;
   }
 
   static async findConversationById(id: mongoose.Types.ObjectId) {
     if (!id) {
-      throw new Error("Missing conversationId");
+      throw new BadRequestError("Missing conversationId");
     }
     const conversation = await ConversationRepository.findConversationById(
       id as mongoose.Types.ObjectId
     );
     if (!conversation) {
-      throw new Error("Conversation not found");
+      throw new NotFoundError("Conversation not found");
     }
     return conversation;
   }
 
   static async findAllConversationsByUser(userId: mongoose.Types.ObjectId) {
     if (!userId) {
-      throw new Error("Missing userId");
+      throw new BadRequestError("Missing userId");
     }
     const conversations: IConversationPopulated[] =
       await ConversationRepository.findAllConversationsByUser(
@@ -83,7 +89,9 @@ class ConversationService {
             participant._id?.toString() !== userId.toString()
         );
         if (!otherUser) {
-          throw new Error("Other user not found in conversation participants");
+          throw new NotFoundError(
+            "Other user not found in conversation participants"
+          );
         }
         return {
           _id: conv._id || "",
@@ -101,7 +109,7 @@ class ConversationService {
     participantId2: mongoose.Types.ObjectId
   ) {
     if (!participantId1 || !participantId2) {
-      throw new Error("Missing participantId");
+      throw new BadRequestError("Missing participantId");
     }
     const conversation =
       await ConversationRepository.findConversationByParticipants(
@@ -109,7 +117,7 @@ class ConversationService {
         participantId2
       );
     if (!conversation) {
-      throw new Error("Conversation not found");
+      throw new NotFoundError("Conversation not found");
     }
     return conversation;
   }
@@ -119,28 +127,28 @@ class ConversationService {
     message: IMessage
   ) {
     if (!conversationId || !message) {
-      throw new Error("Missing required fields");
+      throw new BadRequestError("Missing required fields");
     }
     const conversation = await ConversationRepository.updateLastMessage(
       conversationId,
       message
     );
     if (!conversation) {
-      throw new Error("Error updating conversation");
+      throw new InternalServerError("Error updating conversation");
     }
     return conversation;
   }
 
   static async deleteConversation(conversationId: mongoose.Types.ObjectId) {
     if (!conversationId) {
-      throw new Error("Missing conversationId");
+      throw new BadRequestError("Missing conversationId");
     }
     await MessageRepository.deleteMessagesByConversation(conversationId);
     const conversation = await ConversationRepository.deleteConversation(
       conversationId
     );
     if (!conversation) {
-      throw new Error("Error deleting conversation");
+      throw new InternalServerError("Error deleting conversation");
     }
     return conversation;
   }

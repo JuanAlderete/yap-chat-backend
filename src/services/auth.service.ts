@@ -3,17 +3,23 @@ import { LoginDTO, RegisterDTO, UpdateProfileDTO } from "../types/auth.types";
 import { sendVerificationEmail } from "../utils/email.util";
 import { generateToken } from "../utils/jwt.util";
 import { generateRandomToken } from "../utils/crypto.util";
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../utils/appError.util";
 
 class AuthService {
   static async register(registerData: RegisterDTO) {
     if (!registerData.name || !registerData.email || !registerData.password) {
-      throw new Error("Missing required fields");
+      throw new BadRequestError("Missing required fields");
     }
     const hasEmail = await UserRepository.findUserByEmail(registerData.email);
     if (hasEmail) {
-      throw new Error("Email already exists");
+      throw new ConflictError("Email already exists");
     }
     const hashedPassword = await bcrypt.hash(registerData.password, 12);
     const verificationToken = generateRandomToken();
@@ -27,7 +33,7 @@ class AuthService {
       created_at: new Date(),
     });
     if (!user) {
-      throw new Error("Error creating user");
+      throw new InternalServerError("Error creating user");
     }
     sendVerificationEmail(registerData.email, verificationToken);
     const { password, verificationToken: token, ...safeUser } = user;
@@ -40,21 +46,21 @@ class AuthService {
 
   static async login(loginData: LoginDTO) {
     if (!loginData.email || !loginData.password) {
-      throw new Error("Missing required fields");
+      throw new BadRequestError("Missing required fields");
     }
     const user = await UserRepository.findUserByEmail(loginData.email, true);
     if (!user) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
     const isPasswordCorrect = await bcrypt.compare(
       loginData.password,
       user.password
     );
     if (!isPasswordCorrect) {
-      throw new Error("Incorrect password");
+      throw new UnauthorizedError("Incorrect password");
     }
     if (!user.isVerified) {
-      throw new Error("User not verified");
+      throw new UnauthorizedError("User not verified");
     }
     const token = generateToken({
       userId: user._id.toString(),
@@ -70,10 +76,10 @@ class AuthService {
   }
 
   static async verifyEmail(token: string) {
-    if (!token) throw new Error("Missing token");
+    if (!token) throw new BadRequestError("Missing token");
 
     const user = await UserRepository.findByVerificationToken(token);
-    if (!user) throw new Error("Invalid token");
+    if (!user) throw new NotFoundError("Invalid token");
     user.isVerified = true;
     user.verificationToken = undefined;
     await user.save();
@@ -88,11 +94,11 @@ class AuthService {
 
   static async updateProfile(userId: string, updated_ata: UpdateProfileDTO) {
     if (!updated_ata.name && !updated_ata.avatar) {
-      throw new Error("No data provided for update");
+      throw new BadRequestError("No data provided for update");
     }
     const updatedUser = await UserRepository.updateUser(userId, updated_ata);
     if (!updatedUser) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
     return {
       success: true,
@@ -103,7 +109,7 @@ class AuthService {
 
   static async searchUsers(query: string, currentUserId: string) {
     if (!query || query.trim().length < 2) {
-      throw new Error("Query must be at least 2 characters");
+      throw new BadRequestError("Query must be at least 2 characters");
     }
 
     const users = await UserRepository.searchUsers(query.trim(), currentUserId);
