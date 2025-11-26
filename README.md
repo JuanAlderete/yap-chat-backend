@@ -682,3 +682,7 @@ Variables de entorno necesarias en producción:
 ## 🤝 Contribuciones
 
 Este proyecto es parte de un trabajo final de curso. No se aceptan contribuciones externas en este momento.
+
+## Notas
+
+El backend decidi hacerlo con typescript, ya que yo tengo 3 años de experiencia en frontend con angular. Por lo que me pareció una buena opción aceptar el reto de typescript y realizar el backend con este lenguaje.
