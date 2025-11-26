@@ -921,7 +921,7 @@ yap-chat-backend/
 
 - GitHub: [@JuanAlderete](https://github.com/JuanAlderete)
 - Proyecto: [yap-chat-backend](https://github.com/JuanAlderete/yap-chat-backend)
-- Postman collection: [YAP-Chat-API.postman_collection.json](https://github.com/JuanAlderete/yap-chat-backend/docs/YAP-Chat-API.postman_collection.json)
+- Postman collection: [YAP-Chat-API.postman_collection.json](https://github.com/JuanAlderete/yap-chat-backend/blob/master/docs/YAP-Chat-API.postman_collection.json)
 
 ---
 
