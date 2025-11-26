@@ -7,8 +7,10 @@ API REST para sistema de mensajería en tiempo real construida con Node.js, Expr
 - ✅ Autenticación con JWT
 - ✅ Verificación de email
 - ✅ Sistema de conversaciones 1 a 1
-- ✅ Mensajería con paginación
+- ✅ Mensajería
 - ✅ Actualización de perfil
+- ✅ Búsqueda de usuarios
+- ✅ Edición y eliminación de mensajes
 - ✅ Arquitectura en capas (Routes → Controllers → Services → Repositories)
 - ✅ Validaciones con express-validator
 - ✅ TypeScript
@@ -49,16 +51,29 @@ pnpm install
 PORT=3000
 MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/dbname
 JWT_SECRET=tu_secreto_super_seguro_aqui
-JWT_EXPIRE=7d
-EMAIL_HOST=smtp.gmail.com
+JWT_EXPIRE=7d o 86400
+EMAIL_HOST=gmail
 EMAIL_PORT=587
 EMAIL_USER=tu_email@gmail.com
 EMAIL_PASS=tu_password_de_aplicacion
 FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-4. Iniciar servidor de desarrollo:
+### Configuración de Email (Gmail)
+
+Para enviar emails de verificación, necesitas:
+
+1. Habilitar "Verificación en 2 pasos" en tu cuenta de Google
+2. Generar una "Contraseña de aplicación":
+
+   - Ve a [Configuración de Google](https://myaccount.google.com/security)
+   - Busca "Contraseñas de aplicaciones"
+   - Crea una nueva para "Correo"
+   - Usa esa contraseña en `EMAIL_PASS`
+
+3. Iniciar servidor de desarrollo:
 
 ```bash
 npm run dev
@@ -78,6 +93,24 @@ npm start
 ```
 http://localhost:3000/api
 ```
+
+---
+
+### 🔍 Health Check
+
+```http
+GET /api/health
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "message": "OK"
+}
+```
+
+Endpoint público para verificar que el servidor está funcionando.
 
 ---
 
@@ -263,6 +296,54 @@ Authorization: Bearer {token}
 
 ---
 
+### 👥 Usuarios (`/auth/users`)
+
+#### Buscar Usuarios
+
+```http
+GET /auth/users/search?query={query}
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Query Params:**
+
+- `query` - Término de búsqueda (mínimo 2 caracteres)
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "_id": "673f8a1b2c3d4e5f6a7b8c9e",
+      "name": "María García",
+      "email": "maria@example.com",
+      "avatar": "https://..."
+    }
+  ]
+}
+```
+
+**Errores:**
+
+- `400` - Query muy corta (menos de 2 caracteres)
+- `401` - No autenticado
+
+**Notas:**
+
+- Busca por nombre o email
+- Excluye al usuario actual
+- Solo muestra usuarios verificados
+- Máximo 10 resultados
+
+---
+
 ### 💬 Conversaciones (`/conversations`)
 
 > **Nota:** Todos los endpoints requieren autenticación
@@ -320,6 +401,7 @@ Authorization: Bearer {token}
 - `400` - No puedes crear conversación contigo mismo
 - `400` - Participant ID inválido
 - `404` - Usuario participante no encontrado
+- `409` - La conversación ya existe
 
 ---
 
@@ -522,13 +604,7 @@ Authorization: Bearer {token}
       "readAt": "2024-11-21T11:01:00.000Z",
       "created_at": "2024-11-21T11:00:00.000Z"
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 50,
-    "total": 23,
-    "totalPages": 1
-  }
+  ]
 }
 ```
 
@@ -541,7 +617,59 @@ Authorization: Bearer {token}
 
 ---
 
-#### 3. Eliminar Mensaje
+#### 3. Actualizar Mensaje
+
+```http
+PUT /messages/:id
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros:**
+
+- `id` - ID del mensaje
+
+**Body:**
+
+```json
+{
+  "content": "Mensaje editado"
+}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": {
+    "_id": "673fa1c3d4e5f6a7b8c9d0f",
+    "conversationId": "673f9b2c3d4e5f6a7b8c9d0e",
+    "senderId": {
+      "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+      "name": "Juan Pérez",
+      "avatar": "https://..."
+    },
+    "content": "Mensaje editado",
+    "updated_at": "2024-11-21T11:05:00.000Z",
+    "created_at": "2024-11-21T11:00:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `400` - Contenido vacío o muy largo (máx 5000 caracteres)
+- `403` - Solo puedes editar tus propios mensajes
+- `404` - Mensaje no encontrado
+
+---
+
+#### 4. Eliminar Mensaje
 
 ```http
 DELETE /messages/:id
@@ -641,6 +769,7 @@ El token se obtiene al hacer login y tiene una expiración de 7 días (configura
 - `401` - No autenticado
 - `403` - No autorizado
 - `404` - Recurso no encontrado
+- `409` - Conflicto (recurso ya existe o acción no permitida)
 - `500` - Error del servidor
 
 ---
@@ -651,6 +780,48 @@ El token se obtiene al hacer login y tiene una expiración de 7 días (configura
 2. **Conversaciones 1 a 1**: Solo se permiten conversaciones entre 2 usuarios
 3. **Marcar como leído**: Los mensajes se marcan automáticamente como leídos al obtenerlos
 4. **Eliminación en cascada**: Al eliminar una conversación, también se eliminan sus mensajes
+5. **Actualización de mensajes**: Solo puedes editar tus propios mensajes. El campo `updated_at` se actualiza automáticamente
+6. **Búsqueda de usuarios**: La búsqueda es case-insensitive y busca coincidencias parciales en nombre y email
+7. **Límite de contenido**: Los mensajes tienen un límite de 5000 caracteres
+8. **CORS**: El backend acepta peticiones desde los orígenes configurados en `allowedOrigins` (ver `src/server.ts`)
+
+---
+
+## 🧪 Probando la API
+
+### Con Postman
+
+1. Importa la colección de Postman (archivo `postman_collection.json`)
+2. Configura la variable `baseUrl` según tu entorno:
+   - Desarrollo: `http://localhost:3000/api`
+   - Producción: `https://tu-dominio.com/api`
+3. Ejecuta primero "Register" y luego "Login" para obtener el token
+4. El token se guarda automáticamente en las variables de colección
+
+### Con cURL
+
+```bash
+# Registrar usuario
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "password": "123456"
+  }'
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "juan@example.com",
+    "password": "123456"
+  }'
+
+# Obtener perfil (reemplaza {token} con el token obtenido en login)
+curl -X GET http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer {token}"
+```
 
 ---
 
@@ -663,10 +834,84 @@ El backend está preparado para deploy en:
 - **Heroku**
 - **Vercel** (solo funciones serverless)
 
+### Configuración de Variables de Entorno en Render
+
+1. Ve a tu servicio en Render
+2. Settings → Environment
+3. Agrega todas las variables del archivo `.env.example`
+4. **IMPORTANTE**: Configura `BACKEND_URL` con la URL de tu deploy en Render
+   - Ejemplo: `https://yap-chat-api.onrender.com`
+
 Variables de entorno necesarias en producción:
 
 - Todas las del archivo `.env`
 - `NODE_ENV=production`
+
+### Verificación del Deploy
+
+Una vez desplegado, verifica que funciona:
+
+```bash
+curl https://tu-dominio.onrender.com/api/health
+```
+
+Deberías recibir: `{"message":"OK"}`
+
+---
+
+## 📦 Estructura del Proyecto
+
+```
+yap-chat-backend/
+├── src/
+│   ├── config/          # Configuraciones (DB, env)
+│   ├── controllers/     # Controladores de rutas
+│   ├── middleware/      # Middlewares (auth, validación, errores)
+│   ├── models/          # Modelos de Mongoose
+│   ├── repositories/    # Capa de acceso a datos
+│   ├── routes/          # Definición de rutas
+│   ├── services/        # Lógica de negocio
+│   ├── types/           # Tipos e interfaces de TypeScript
+│   ├── utils/           # Utilidades (JWT, email, validadores)
+│   └── server.ts        # Punto de entrada de la aplicación
+├── .env.example         # Variables de entorno de ejemplo
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+---
+
+## 🐛 Solución de Problemas Comunes
+
+### Error: "Missing required environment variables"
+
+- Verifica que todas las variables del `.env` estén configuradas
+- Asegúrate de que `MONGODB_URI` y `JWT_SECRET` no estén vacíos
+
+### Error: "❌ Error al conectar a la base de datos"
+
+- Verifica que tu IP esté en la whitelist de MongoDB Atlas
+- Revisa que la URI de MongoDB sea correcta
+- Comprueba que el usuario y contraseña de MongoDB sean correctos
+
+### Error: "Invalid token" o "Token expired"
+
+- El token JWT expira según `JWT_EXPIRE` (default 7 días)
+- Haz login nuevamente para obtener un token nuevo
+
+### Error al enviar emails
+
+- Verifica que uses una "Contraseña de aplicación" de Gmail, no tu contraseña normal
+- Asegúrate de tener habilitada la verificación en 2 pasos en Google
+- Revisa que `EMAIL_HOST`, `EMAIL_USER` y `EMAIL_PASS` estén correctos
+
+### CORS Error en frontend
+
+- Agrega la URL de tu frontend a `allowedOrigins` en `src/server.ts`
+- Si es local: `http://localhost:PUERTO`
+- Si es producción: la URL completa de tu deploy
 
 ---
 
@@ -676,6 +921,7 @@ Variables de entorno necesarias en producción:
 
 - GitHub: [@JuanAlderete](https://github.com/JuanAlderete)
 - Proyecto: [yap-chat-backend](https://github.com/JuanAlderete/yap-chat-backend)
+- Postman collection: [YAP-Chat-API.postman_collection.json](https://github.com/JuanAlderete/yap-chat-backend/docs/YAP-Chat-API.postman_collection.json)
 
 ---
 
