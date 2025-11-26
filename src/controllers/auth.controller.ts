@@ -57,11 +57,7 @@ class AuthController {
         });
       }
       const userData = await AuthService.verifyEmail(token);
-      return response.status(200).json({
-        success: true,
-        message: userData.message,
-        user: userData.user,
-      });
+      return response.redirect(envConfig.frontendUrl + "/login?from=verified_email");
     } catch (error: any) {
       next(error);
     }
