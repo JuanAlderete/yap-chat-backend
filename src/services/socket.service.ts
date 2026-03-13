@@ -19,5 +19,5 @@ export const emitDeletedMessage = (
 ) => {
   getIO()
     .to(`conversation:${conversationId}`)
-    .emit(SOCKET_EVENTS.MESSAGE_DELETED, { messageId });
+    .emit(SOCKET_EVENTS.MESSAGE_DELETED, { messageId, conversationId });
 };

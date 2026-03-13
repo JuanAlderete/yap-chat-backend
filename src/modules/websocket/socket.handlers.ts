@@ -11,4 +11,18 @@ export const registerSocketHandlers = (socket: Socket): void => {
     socket.leave(`conversation:${conversationId}`);
     console.log(`Socket ${socket.id} left conversation:${conversationId}`);
   });
+
+  socket.on("typing:start", ({ conversationId }) => {
+    socket.to(`conversation:${conversationId}`).emit("typing:start", {
+      userId: (socket as any).userId,
+      conversationId,
+    });
+  });
+
+  socket.on("typing:stop", ({ conversationId }) => {
+    socket.to(`conversation:${conversationId}`).emit("typing:stop", {
+      userId: (socket as any).userId,
+      conversationId,
+    });
+  });
 };
