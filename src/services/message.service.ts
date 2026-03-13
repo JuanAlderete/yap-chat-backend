@@ -8,6 +8,11 @@ import {
   InternalServerError,
   NotFoundError,
 } from "../utils/appError.util";
+import {
+  emitNewMessage,
+  emitUpdatedMessage,
+  emitDeletedMessage,
+} from "./socket.service";
 
 class MessageService {
   static async sendMessage(userId: string, dto: SendMessageDTO) {
@@ -35,6 +40,7 @@ class MessageService {
       throw new InternalServerError("Error creating message");
     }
     await ConversationRepository.updateLastMessage(dto.conversationId, message);
+    emitNewMessage(dto.conversationId.toString(), message);
     return message;
   }
 
@@ -100,6 +106,12 @@ class MessageService {
       messageId,
       content.trim()
     );
+    if (updatedMessage) {
+      emitUpdatedMessage(
+        (updatedMessage as any).conversationId?.toString() ?? "",
+        updatedMessage
+      );
+    }
 
     return {
       success: true,
@@ -127,6 +139,10 @@ class MessageService {
     }
     const messageDeleted = await MessageRepository.deleteMessage(
       messageObjectId
+    );
+    emitDeletedMessage(
+      (message as any).conversationId?.toString() ?? "",
+      messageId
     );
     return messageDeleted;
   }

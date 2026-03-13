@@ -1,0 +1,3743 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.env.example
+.gitignore
+.render.yaml
+docs/YAP-Chat-API.postman_collection.json
+nodemon.json
+package.json
+README.md
+src/config/db.ts
+src/config/env.ts
+src/controllers/auth.controller.ts
+src/controllers/conversation.controller.ts
+src/controllers/message.controller.ts
+src/middleware/auth.middleware.ts
+src/middleware/error.middleware.ts
+src/middleware/validator.middleware.ts
+src/models/Conversation.model.ts
+src/models/Message.model.ts
+src/models/User.model.ts
+src/modules/websocket/socket.events.ts
+src/modules/websocket/socket.handlers.ts
+src/modules/websocket/socket.manager.ts
+src/modules/websocket/socket.middleware.ts
+src/modules/websocket/types/socket.types.ts
+src/repositories/conversation.repository.ts
+src/repositories/message.repository.ts
+src/repositories/user.repository.ts
+src/routes/auth.routes.ts
+src/routes/conversation.routes.ts
+src/routes/message.routes.ts
+src/server.ts
+src/services/auth.service.ts
+src/services/conversation.service.ts
+src/services/message.service.ts
+src/types/auth.types.ts
+src/types/index.ts
+src/utils/appError.util.ts
+src/utils/crypto.util.ts
+src/utils/email.util.ts
+src/utils/jwt.util.ts
+src/utils/validators.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/modules/websocket/socket.events.ts">
+export const SOCKET_EVENTS = {
+    CONNECT: 'connect',
+    DISCONNECT: 'disconnect',
+    USER_JOINED: 'user:joined',
+    USER_LEFT: 'user:left',
+    USER_ACTIVITY: 'user:activity'
+} as const;
+
+export type SocketEvent = keyof typeof SOCKET_EVENTS;
+</file>
+
+<file path="src/modules/websocket/socket.handlers.ts">
+
+</file>
+
+<file path="src/modules/websocket/socket.manager.ts">
+
+</file>
+
+<file path="src/modules/websocket/socket.middleware.ts">
+import { AuthenticatedSocket } from "./types/socket.types";
+import { NextFunction } from "express";
+import { verifyToken } from "../../utils/jwt.util";
+
+function socketMiddleware(socket: AuthenticatedSocket, next: NextFunction) {
+    try {
+        const user = verifyToken(socket.handshake.auth.token);
+        socket.userId = user?.userId;
+        socket.email = user?.email;
+        next();
+    } catch (error) {
+        socket.emit("error", { message: "Unauthorized" });
+        socket.disconnect();
+        next(new Error("Unauthorized"));
+    }
+}
+
+export default socketMiddleware;
+</file>
+
+<file path="src/modules/websocket/types/socket.types.ts">
+import { Socket } from 'socket.io';
+
+export interface AuthenticatedSocket extends Socket {
+  userId?: string;
+  email?: string;
+}
+
+export interface UserActivityPayload {
+  userId: string;
+  activity: 'writing' | 'stoppedWriting';
+}
+</file>
+
+<file path="docs/YAP-Chat-API.postman_collection.json">
+{
+  "info": {
+    "name": "YAP Chat API",
+    "description": "API REST para sistema de mensajería en tiempo real",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messageId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Usuario registrado:', response.user.email);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Pérez\",\n  \"email\": \"juan@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra un nuevo usuario en el sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "    console.log('Token guardado:', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Inicia sesión y obtiene el token JWT"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Obtiene el perfil del usuario autenticado"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Alderete\",\n  \"avatar\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Actualiza el perfil del usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/users/search?query=juan",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "users", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "juan"
+                }
+              ]
+            },
+            "description": "Busca usuarios por nombre o email"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "Create Conversation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('conversationId', response.conversation._id);",
+                  "    console.log('Conversation ID guardado:', response.conversation._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"673f8a1b2c3d4e5f6a7b8c9e\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations"]
+            },
+            "description": "Crea o obtiene una conversación con otro usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations"]
+            },
+            "description": "Lista todas las conversaciones del usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversation by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations", "{{conversationId}}"]
+            },
+            "description": "Obtiene una conversación específica por ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations", "{{conversationId}}"]
+            },
+            "description": "Elimina una conversación y todos sus mensajes"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('messageId', response.message._id);",
+                  "    console.log('Message ID guardado:', response.message._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"{{conversationId}}\",\n  \"content\": \"Hola, ¿cómo estás?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages"]
+            },
+            "description": "Envía un mensaje a una conversación"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages by Conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages", "{{conversationId}}"]
+            },
+            "description": "Obtiene todos los mensajes de una conversación"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Message",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Mensaje editado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/messages/{{messageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages", "{{messageId}}"]
+            },
+            "description": "Actualiza el contenido de un mensaje"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/{{messageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages", "{{messageId}}"]
+            },
+            "description": "Elimina un mensaje"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Verifica el estado del servidor"
+      },
+      "response": []
+    }
+  ]
+}
+</file>
+
+<file path="nodemon.json">
+{
+  "watch": ["src"],
+  "ext": "ts",
+  "exec": "ts-node src/server.ts"
+}
+</file>
+
+<file path="src/models/Message.model.ts">
+import mongoose from "mongoose";
+import { IMessage } from "../types";
+import Users from "./User.model";
+import Conversations from "./Conversation.model";
+
+const messageSchema = new mongoose.Schema<IMessage>({
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+    required: true,
+  },
+  conversationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Conversations",
+    required: true,
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+  isRead: {
+    type: Boolean,
+    default: false,
+  },
+  readAt: {
+    type: Date,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updated_at: {
+    type: Date,
+    default: null,
+  },
+});
+
+const Messages = mongoose.model<IMessage>("Messages", messageSchema);
+
+export default Messages;
+</file>
+
+<file path="src/utils/crypto.util.ts">
+import crypto from "crypto";
+
+export const generateRandomToken = (): string => {
+  return crypto.randomBytes(32).toString("hex");
+};
+</file>
+
+<file path="src/utils/jwt.util.ts">
+import { JWTPayload } from "../types/auth.types";
+import jwt from "jsonwebtoken";
+import envConfig from "../config/env";
+
+export function generateToken(payload: JWTPayload): string {
+  try {
+    const expiresIn = envConfig.jwtExpire
+      ? parseInt(envConfig.jwtExpire)
+      : 86400;
+    const token = jwt.sign(payload, envConfig.jwtSecret, {
+      expiresIn,
+    });
+    return token;
+  } catch (error) {
+    console.error("Error generating token:", error);
+    return "";
+  }
+}
+
+export function verifyToken(token: string): JWTPayload | null {
+  try {
+    return jwt.verify(token, envConfig.jwtSecret) as JWTPayload;
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return null;
+  }
+}
+</file>
+
+<file path="src/utils/validators.ts">
+export function validateEmail(email: string) {
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "CommonJS",
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "lib": [
+      "ES2020"
+    ],
+    "types": [
+      "node"
+    ],
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "strict": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+</file>
+
+<file path=".env.example">
+PORT=3000
+MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/dbname
+JWT_SECRET=tu_secreto_super_seguro_aqui
+JWT_EXPIRE=7d
+EMAIL_HOST=smtp.gmail.com
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASS=tu_password_de_aplicacion
+FRONTEND_URL=http://localhost:5173
+</file>
+
+<file path=".gitignore">
+node_modules
+pnpm-lock.yaml
+.env
+dist/
+*.log
+</file>
+
+<file path=".render.yaml">
+services:
+  - type: web
+    name: yap-chat-api
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+</file>
+
+<file path="package.json">
+{
+  "name": "yap-chat-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0",
+  "dependencies": {
+    "@types/node": "^24.10.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.3.0",
+    "http": "0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.20.0",
+    "nodemailer": "^7.0.10",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.3",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
+</file>
+
+<file path="src/controllers/conversation.controller.ts">
+import { NextFunction, Request, Response } from "express";
+import ConversationService from "../services/conversation.service";
+import mongoose from "mongoose";
+
+class ConversationController {
+  static async createConversation(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userData = request.user;
+      if (!userData) {
+        return response.status(401).json({
+          success: false,
+          message: "No autorizado",
+          status: 401,
+        });
+      }
+      const conversationData = request.body;
+      if (!conversationData.participantId) {
+        return response.status(400).json({
+          success: false,
+          message: "Missing required fields",
+          status: 400,
+        });
+      }
+      const newConversation = await ConversationService.createConversation(
+        userData.userId,
+        conversationData
+      );
+      return response.json(newConversation);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async getMyConversations(request: Request, response: Response) {
+    try {
+      const userData = request.user;
+      if (!userData) {
+        return response.status(401).json({
+          success: false,
+          message: "No autorizado",
+          status: 401,
+        });
+      }
+      const conversations =
+        await ConversationService.findAllConversationsByUser(userData.userId);
+      return response.status(200).json({
+        success: true,
+        message: "Conversations found successfully",
+        conversations,
+      });
+    } catch (error: any) {
+      console.log(error);
+      if (error.status) {
+        return response.status(error.status).json({
+          success: false,
+          message: error.message,
+          status: error.status,
+        });
+      }
+
+      return response.status(500).json({
+        success: false,
+        message: "Error interno del servidor",
+        status: 500,
+      });
+    }
+  }
+
+  static async getConversationById(request: Request, response: Response) {
+    const conversationId = request.params.id;
+    try {
+      if (!conversationId) {
+        return response.status(400).json({
+          success: false,
+          message: "Missing conversationId in request parameters.",
+        });
+      }
+      if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+        return response.status(400).json({
+          success: false,
+          message: "Invalid conversationId format.",
+        });
+      }
+      const conversationObjectId = new mongoose.Types.ObjectId(conversationId);
+      const conversation = await ConversationService.findConversationById(
+        conversationObjectId
+      );
+      if (!conversation) {
+        return response.status(404).json({
+          success: false,
+          message: `Conversation with ID ${conversationId} not found.`,
+        });
+      }
+      return response.status(200).json({
+        success: true,
+        message: "Conversation found successfully",
+        conversation: conversation,
+      });
+    } catch (error) {
+      const customError = error as { status?: number; message: string };
+
+      if (customError.status) {
+        return response.status(customError.status).json({
+          success: false,
+          message: customError.message,
+        });
+      }
+      console.error("Server Error in getConversationById:", error);
+      return response.status(500).json({
+        success: false,
+        message: "Internal server error.",
+      });
+    }
+  }
+
+  static async deleteConversation(request: Request, response: Response) {
+    const conversationId = request.params.id;
+    try {
+      if (!conversationId) {
+        return response.status(400).json({
+          success: false,
+          message: "Missing conversationId",
+          status: 400,
+        });
+      }
+      const conversationObjectId = new mongoose.Types.ObjectId(conversationId);
+      const conversation = await ConversationService.deleteConversation(
+        conversationObjectId
+      );
+      return response.status(200).json({
+        success: true,
+        message: "Conversation deleted successfully",
+        conversation: conversation,
+      });
+    } catch (error: any) {
+      if (error.status) {
+        return response.status(error.status).json({
+          success: false,
+          message: error.message,
+          status: error.status,
+        });
+      }
+
+      return response.status(500).json({
+        success: false,
+        message: "Error interno del servidor",
+        status: 500,
+      });
+    }
+  }
+}
+
+export default ConversationController;
+</file>
+
+<file path="src/controllers/message.controller.ts">
+import mongoose from "mongoose";
+import MessageService from "../services/message.service";
+import { NextFunction, Request, Response } from "express";
+
+class MessageController {
+  static async sendMessage(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    const userId = request.user.userId;
+    try {
+      const { conversationId, content } = request.body;
+      const message = await MessageService.sendMessage(userId, {
+        conversationId,
+        content,
+      });
+      response.status(201).json({
+        success: true,
+        message,
+      });
+    } catch (error: any) {
+      console.error("Error creating message:", error);
+      next(error);
+    }
+  }
+
+  static async getMessagesByConversation(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    const conversationId = request.params.conversationId;
+    const userId = request.user.userId;
+    try {
+      if (!conversationId) {
+        return response.status(400).json({
+          success: false,
+          message: "Missing conversationId in request parameters.",
+        });
+      }
+      const messages = await MessageService.findAllMessagesByConversation(
+        conversationId,
+        userId
+      );
+      return response.status(200).json({
+        success: true,
+        message: "Messages found successfully",
+        messages,
+      });
+    } catch (error: any) {
+      console.error("Error getting messages by conversation:", error);
+      next(error);
+    }
+  }
+
+  static async updateMessage(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = request.params;
+      const { content } = request.body;
+      const userId = request.user.userId;
+      const result = await MessageService.updateMessage(id, userId, content);
+      response.status(200).json(result);
+    } catch (error: any) {
+      console.error("Error updating message:", error.message);
+      next(error);
+    }
+  }
+
+  static async deleteMessage(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    const messageId = request.params.id;
+    const userId = request.user.userId;
+    try {
+      const message = await MessageService.deleteMessage(messageId, userId);
+      return response.status(200).json({
+        success: true,
+        message: "Message deleted successfully",
+        messageContent: message,
+      });
+    } catch (error: any) {
+      console.error("Error deleting message:", error);
+      next(error);
+    }
+  }
+}
+
+export default MessageController;
+</file>
+
+<file path="src/middleware/auth.middleware.ts">
+import jwt from "jsonwebtoken";
+import envConfig from "../config/env";
+import { Request, Response, NextFunction } from "express";
+
+// extender para añadir "user"
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
+
+function authMiddleware(
+  request: Request,
+  response: Response,
+  next: NextFunction
+) {
+  try {
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader) {
+      return response.status(401).json({
+        success: false,
+        message: "No autorizado",
+        status: 401,
+      });
+    }
+
+    const parts = authHeader.split(" ");
+
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
+      return response.status(400).json({
+        success: false,
+        message: "Formato de token inválido",
+        status: 400,
+      });
+    }
+
+    const token = parts[1];
+
+    const userSessionData = jwt.verify(token, envConfig.jwtSecret);
+
+    request.user = userSessionData;
+
+    return next();
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return response.status(401).json({
+        success: false,
+        message: "Token expirado",
+        status: 401,
+      });
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return response.status(400).json({
+        success: false,
+        message: "Token inválido",
+        status: 400,
+      });
+    }
+
+    return response.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+      status: 500,
+    });
+  }
+}
+
+export default authMiddleware;
+</file>
+
+<file path="src/middleware/error.middleware.ts">
+import { Request, Response, NextFunction } from "express";
+import { AppError } from "../utils/appError.util";
+
+export const errorHandler = (
+  err: Error | AppError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.error("Error:", {
+    message: err.message,
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    path: req.path,
+    method: req.method,
+  });
+
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    });
+  }
+
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      errors: err.message,
+    });
+  }
+
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid ID format",
+    });
+  }
+
+  if ((err as any).code === 11000) {
+    const field = Object.keys((err as any).keyValue)[0];
+    return res.status(409).json({
+      success: false,
+      message: `${field} already exists`,
+    });
+  }
+
+  if (err.name === "JsonWebTokenError") {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+    });
+  }
+
+  if (err.name === "TokenExpiredError") {
+    return res.status(401).json({
+      success: false,
+      message: "Token expired",
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+};
+</file>
+
+<file path="src/repositories/conversation.repository.ts">
+import mongoose from "mongoose";
+import Conversations from "../models/Conversation.model";
+import {
+  IConversation,
+  IConversationPopulated,
+  IMessage,
+  IUser,
+} from "../types";
+
+class ConversationRepository {
+  static async createConversation(conversationData: IConversation) {
+    try {
+      const conversation = await Conversations.create(conversationData);
+      return conversation.populate("participants");
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo crear la conversación", error);
+      throw error;
+    }
+  }
+
+  static async findConversationById(id: mongoose.Types.ObjectId) {
+    try {
+      return await Conversations.findById(id).populate("participants");
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar la conversación",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async findConversationByParticipants(
+    participantId1: mongoose.Types.ObjectId,
+    participantId2: mongoose.Types.ObjectId
+  ) {
+    try {
+      return await Conversations.findOne({
+        $or: [
+          { participants: participantId1 },
+          { participants: participantId2 },
+        ],
+      }).populate("participants");
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar la conversación",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async updateConversation(
+    id: mongoose.Types.ObjectId,
+    conversationData: IConversation
+  ) {
+    try {
+      return await Conversations.findOneAndUpdate(
+        { _id: id },
+        { $set: conversationData },
+        { new: true }
+      );
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo actualizar la conversación",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async deleteConversation(id: mongoose.Types.ObjectId) {
+    try {
+      return await Conversations.findByIdAndDelete({ _id: id });
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo eliminar la conversación",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async findAllConversationsByUser(
+    userId: mongoose.Types.ObjectId
+  ): Promise<IConversationPopulated[]> {
+    try {
+      const conversations = await Conversations.find({ participants: userId })
+        .sort({ lastMessageAt: -1 })
+        .populate<{ participants: IUser[] }>("participants")
+        .lean();
+
+      return conversations;
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar todas las conversaciones",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async findAllConversations() {
+    try {
+      return await Conversations.find().sort({
+        created_at: -1,
+      });
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar todas las conversaciones",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async updateLastMessage(
+    conversationId: mongoose.Types.ObjectId,
+    message: IMessage
+  ) {
+    try {
+      return await Conversations.findByIdAndUpdate(
+        conversationId,
+        {
+          $set: {
+            lastMessage: message.content,
+            lastMessageAt: message.created_at,
+          },
+        },
+        { new: true }
+      );
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo actualizar la conversación",
+        error
+      );
+      throw error;
+    }
+  }
+}
+
+export default ConversationRepository;
+</file>
+
+<file path="src/routes/conversation.routes.ts">
+import express from "express";
+import ConversationController from "../controllers/conversation.controller";
+import authenticate from "../middleware/auth.middleware";
+import {
+  validateCreateConversation,
+  validateConversationId,
+} from "../middleware/validator.middleware";
+
+const conversationRoutes: express.Router = express.Router();
+
+conversationRoutes.use(authenticate);
+
+conversationRoutes.post(
+  "/",
+  validateCreateConversation,
+  ConversationController.createConversation
+);
+
+conversationRoutes.get("/", ConversationController.getMyConversations);
+
+conversationRoutes.get(
+  "/:id",
+  validateConversationId,
+  ConversationController.getConversationById
+);
+
+conversationRoutes.delete(
+  "/:id",
+  validateConversationId,
+  ConversationController.deleteConversation
+);
+
+export default conversationRoutes;
+</file>
+
+<file path="src/routes/message.routes.ts">
+import express from "express";
+import authenticate from "../middleware/auth.middleware";
+import {
+  validateGetMessages,
+  validateMessageId,
+  validateSendMessage,
+  validateUpdateMessage
+} from "../middleware/validator.middleware";
+import MessageController from "../controllers/message.controller";
+
+const messagesRoutes: express.Router = express.Router();
+
+messagesRoutes.use(authenticate);
+
+messagesRoutes.post("/", validateSendMessage, MessageController.sendMessage);
+
+messagesRoutes.get(
+  "/:conversationId",
+  validateGetMessages,
+  MessageController.getMessagesByConversation
+);
+
+messagesRoutes.delete(
+  "/:id",
+  validateMessageId,
+  MessageController.deleteMessage
+);
+
+messagesRoutes.put(
+  "/:id",
+  validateUpdateMessage,
+  MessageController.updateMessage
+);
+
+export default messagesRoutes;
+</file>
+
+<file path="src/types/auth.types.ts">
+import { IUser } from ".";
+
+export interface RegisterDTO {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginDTO {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: IUser;
+}
+
+export interface JWTPayload {
+  userId: string;
+  email: string;
+}
+
+export interface UpdateProfileDTO {
+  name?: string;
+  avatar?: string;
+}
+</file>
+
+<file path="src/utils/appError.util.ts">
+export class AppError extends Error {
+  statusCode: number;
+  isOperational: boolean;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message: string = "Bad Request") {
+    super(message, 400);
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message: string = "Unauthorized") {
+    super(message, 401);
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message: string = "Forbidden") {
+    super(message, 403);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string = "Not Found") {
+    super(message, 404);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string = "Conflict") {
+    super(message, 409);
+  }
+}
+
+export class InternalServerError extends AppError {
+  constructor(message: string = "Internal Server Error") {
+    super(message, 500);
+  }
+}
+</file>
+
+<file path="src/utils/email.util.ts">
+import nodemailer from "nodemailer";
+import envConfig from "../config/env";
+
+const transporter = nodemailer.createTransport({
+  service: envConfig.emailHost,
+  secure: false,
+  auth: {
+    user: envConfig.emailUser,
+    pass: envConfig.emailPass,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
+export async function sendVerificationEmail(email: string, token: string) {
+  try {
+    await transporter.sendMail({
+      from: envConfig.emailUser,
+      to: email,
+      subject: "Verifica tu cuenta de mail",
+      html: `
+            <h1>Verifica tu cuenta de mail</h1>
+            <a href="${envConfig.backendUrl}/api/auth/verify-email/${token}">Verificar</a>
+        `,
+    });
+  } catch (error) {
+    console.error("Error al enviar correo electrónico:", error);
+    return;
+  }
+}
+</file>
+
+<file path="src/config/env.ts">
+import dotenv from "dotenv";
+dotenv.config();
+
+interface EnvConfig {
+  port: number;
+  dbUri: string;
+  jwtSecret: string;
+  jwtExpire: string;
+  emailHost: string;
+  emailUser: string;
+  emailPass: string;
+  frontendUrl: string;
+  backendUrl: string;
+}
+
+const config: EnvConfig = {
+  port: parseInt(process.env.PORT || "3000"),
+  dbUri: process.env.MONGODB_URI || "",
+  jwtSecret: process.env.JWT_SECRET || "",
+  jwtExpire: process.env.JWT_EXPIRE || "86400",
+  emailHost: process.env.EMAIL_HOST || "",
+  emailUser: process.env.EMAIL_USER || "",
+  emailPass: process.env.EMAIL_PASS || "",
+  frontendUrl: process.env.FRONTEND_URL || "",
+  backendUrl: process.env.BACKEND_URL || "",
+};
+
+// Validar que existan
+if (!config.dbUri || !config.jwtSecret) {
+  throw new Error("Missing required environment variables");
+}
+
+export default config;
+</file>
+
+<file path="src/models/Conversation.model.ts">
+import mongoose from "mongoose";
+import { IConversation, IMessage } from "../types";
+import Users from "./User.model";
+
+const conversationSchema = new mongoose.Schema<IConversation>({
+  name: {
+    type: String,
+  },
+  participants: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true },
+  ],
+  lastMessage: {
+    type: String,
+    default: null,
+  },
+  lastMessageAt: {
+    type: Date,
+    default: null,
+  },
+  messages: {
+    type: Array<IMessage>,
+    default: [],
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updated_at: {
+    type: Date,
+    default: null,
+  },
+  isGroup: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const Conversations = mongoose.model<IConversation>(
+  "Conversations",
+  conversationSchema
+);
+
+export default Conversations;
+</file>
+
+<file path="src/models/User.model.ts">
+import mongoose from "mongoose";
+import { IUser } from "../types";
+import { validateEmail } from "../utils/validators";
+
+const usersSchema = new mongoose.Schema<IUser>({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: [validateEmail, "Please fill a valid email address"],
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6,
+    select: false,
+  },
+  avatar: {
+    type: String,
+    default: null,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    default: null,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updated_at: {
+    type: Date,
+    default: null,
+  },
+  active: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
+});
+
+const Users = mongoose.model<IUser>("Users", usersSchema);
+
+export default Users;
+</file>
+
+<file path="src/repositories/message.repository.ts">
+import mongoose from "mongoose";
+import Messages from "../models/Message.model";
+import { IMessage } from "../types";
+
+class MessageRepository {
+  static async createMessage(messageData: IMessage) {
+    try {
+      return await Messages.insertOne(messageData);
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo crear el mensaje", error);
+      throw error;
+    }
+  }
+
+  static async findMessageById(id: mongoose.Types.ObjectId) {
+    try {
+      return await Messages.findById(id).populate("senderId").lean();
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el mensaje", error);
+      throw error;
+    }
+  }
+
+  static async findAllMessagesByConversation(
+    conversationId: mongoose.Types.ObjectId
+  ) {
+    try {
+      return await Messages.find({ conversationId: conversationId })
+        .sort({ created_at: -1 })
+        .populate("senderId")
+        .lean();
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar todos los mensajes",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async updateMessage(messageId: string, content: string){
+    return await Messages.findByIdAndUpdate(
+      messageId,
+      { content, updated_at: new Date() },
+      { new: true }
+    )
+    .populate('senderId', 'name avatar')
+    .lean();
+  };
+
+  static async deleteMessage(id: mongoose.Types.ObjectId) {
+    try {
+      return await Messages.findByIdAndDelete({ _id: id });
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo eliminar el mensaje", error);
+      throw error;
+    }
+  }
+
+  static async deleteMessagesByConversation(
+    conversationId: mongoose.Types.ObjectId
+  ) {
+    try {
+      return await Messages.deleteMany({ conversationId: conversationId });
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo eliminar todos los mensajes de una conversación",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async markMessagesAsRead(
+    conversationId: mongoose.Types.ObjectId,
+    userId: mongoose.Types.ObjectId
+  ) {
+    try {
+      return await Messages.updateMany(
+        {
+          conversationId: conversationId,
+          senderId: { $ne: userId },
+          isRead: false,
+        },
+        { $set: { isRead: true } }
+      );
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo marcar el mensaje como leido",
+        error
+      );
+      throw error;
+    }
+  }
+}
+
+export default MessageRepository;
+</file>
+
+<file path="src/services/message.service.ts">
+import mongoose from "mongoose";
+import MessageRepository from "../repositories/message.repository";
+import { IMessage, SendMessageDTO } from "../types";
+import ConversationRepository from "../repositories/conversation.repository";
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+} from "../utils/appError.util";
+
+class MessageService {
+  static async sendMessage(userId: string, dto: SendMessageDTO) {
+    if (!userId || !dto.conversationId || !dto.content) {
+      throw new BadRequestError("Missing required fields");
+    }
+    const conversation = await ConversationRepository.findConversationById(
+      dto.conversationId
+    );
+    if (!conversation) {
+      throw new NotFoundError("Conversation not found");
+    }
+    const isParticipant = conversation.participants.some(
+      (participant: any) => participant._id.toString() === userId
+    );
+    if (!isParticipant) {
+      throw new ConflictError("You are not a participant of this conversation");
+    }
+    const message = await MessageRepository.createMessage({
+      conversationId: dto.conversationId,
+      senderId: userId,
+      content: dto.content,
+    });
+    if (!message) {
+      throw new InternalServerError("Error creating message");
+    }
+    await ConversationRepository.updateLastMessage(dto.conversationId, message);
+    return message;
+  }
+
+  static async findMessageById(id: mongoose.Types.ObjectId) {
+    if (!id) {
+      throw new BadRequestError("Missing messageId");
+    }
+    const message = await MessageRepository.findMessageById(id);
+    if (!message) {
+      throw new NotFoundError("Message not found");
+    }
+    return message;
+  }
+
+  static async findAllMessagesByConversation(
+    conversationId: string,
+    userId: string
+  ) {
+    if (!conversationId) {
+      throw new BadRequestError("Missing conversationId");
+    }
+    const conversationObjectId = new mongoose.Types.ObjectId(conversationId);
+    const messages = await MessageRepository.findAllMessagesByConversation(
+      conversationObjectId
+    );
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    await MessageRepository.markMessagesAsRead(
+      conversationObjectId,
+      userObjectId
+    );
+    if (!messages || messages.length === 0) {
+      return [];
+    }
+    return messages;
+  }
+
+  static async updateMessage(
+    messageId: string,
+    userId: string,
+    content: string
+  ) {
+    if (!content || content.trim().length === 0) {
+      throw new BadRequestError("Message content cannot be empty");
+    }
+    if (content.length > 5000) {
+      throw new BadRequestError("Message content is too long");
+    }
+    const ObjectMessageId = new mongoose.Types.ObjectId(messageId);
+    const message = await MessageRepository.findMessageById(ObjectMessageId);
+    if (!message) {
+      throw new NotFoundError("Message not found");
+    }
+    const senderId =
+      typeof message.senderId === "object" &&
+      message.senderId !== null &&
+      "_id" in message.senderId
+        ? message.senderId._id
+        : message.senderId;
+    if (senderId.toString() !== userId) {
+      throw new ConflictError("You can only edit your own messages");
+    }
+    const updatedMessage = await MessageRepository.updateMessage(
+      messageId,
+      content.trim()
+    );
+
+    return {
+      success: true,
+      message: updatedMessage,
+    };
+  }
+
+  static async deleteMessage(messageId: string, userId: string) {
+    if (!messageId || !userId) {
+      throw new BadRequestError("Missing required fields");
+    }
+    const messageObjectId = new mongoose.Types.ObjectId(messageId);
+    const message = await MessageRepository.findMessageById(messageObjectId);
+    if (!message) {
+      throw new NotFoundError("Message not found");
+    }
+    const senderId =
+      typeof message.senderId === "object" &&
+      message.senderId !== null &&
+      "_id" in message.senderId
+        ? message.senderId._id
+        : message.senderId;
+    if (senderId.toString() !== userId) {
+      throw new ConflictError("You can only delete your own messages");
+    }
+    const messageDeleted = await MessageRepository.deleteMessage(
+      messageObjectId
+    );
+    return messageDeleted;
+  }
+}
+
+export default MessageService;
+</file>
+
+<file path="src/config/db.ts">
+import mongoose from "mongoose";
+import envConfig from "./env";
+
+export async function connectDB() {
+  try {
+    await mongoose.connect(envConfig.dbUri || "", {
+      timeoutMS: 60000,
+      socketTimeoutMS: 60000,
+    });
+    console.log("✅ MongoDB conectado exitosamente");
+  } catch (error) {
+    console.error("❌ Error al conectar a la base de datos:", error);
+    process.exit(1);
+  }
+}
+</file>
+
+<file path="src/routes/auth.routes.ts">
+import express from "express";
+import AuthController from "../controllers/auth.controller";
+import {
+  validateRegister,
+  validateLogin,
+  validateUpdateProfile,
+} from "../middleware/validator.middleware";
+import authMiddleware from "../middleware/auth.middleware";
+import authenticate from "../middleware/auth.middleware";
+
+const authRoutes: express.Router = express.Router();
+
+authRoutes.post("/register", validateRegister, AuthController.register);
+
+authRoutes.get("/verify-email/:verification_token", AuthController.verifyEmail);
+
+authRoutes.post("/login", validateLogin, AuthController.login);
+
+authRoutes.get("/profile", authMiddleware, AuthController.getProfile);
+
+authRoutes.put(
+  "/profile",
+  authenticate,
+  validateUpdateProfile,
+  AuthController.updateProfile
+);
+
+authRoutes.get("/users/search", authenticate, AuthController.searchUsers);
+
+export default authRoutes;
+</file>
+
+<file path="src/services/conversation.service.ts">
+import mongoose from "mongoose";
+import ConversationRepository from "../repositories/conversation.repository";
+import {
+  ConversationListItem,
+  CreateConversationDTO,
+  IConversation,
+  IConversationPopulated,
+  IMessage,
+  IUser,
+} from "../types";
+import UserRepository from "../repositories/user.repository";
+import MessageRepository from "../repositories/message.repository";
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+} from "../utils/appError.util";
+
+class ConversationService {
+  static async createConversation(
+    currentUserId: mongoose.Types.ObjectId | string,
+    conversationData: CreateConversationDTO
+  ) {
+    if (!currentUserId || !conversationData.participantId) {
+      throw new BadRequestError("Missing required fields");
+    }
+    if (currentUserId === conversationData.participantId) {
+      throw new ConflictError("Cannot create conversation with yourself");
+    }
+    const participant = await UserRepository.findUserById(
+      conversationData.participantId as mongoose.Types.ObjectId
+    );
+    if (!participant) {
+      throw new NotFoundError("Participant not found");
+    }
+    const conversation =
+      await ConversationRepository.findConversationByParticipants(
+        currentUserId as mongoose.Types.ObjectId,
+        conversationData.participantId as mongoose.Types.ObjectId
+      );
+    if (conversation) {
+      throw new ConflictError("Conversation already exists");
+    }
+    const conversationDataToCreate: IConversation = {
+      name: conversationData.name,
+      participants: [
+        currentUserId as mongoose.Types.ObjectId,
+        conversationData.participantId as mongoose.Types.ObjectId,
+      ],
+    };
+    const newConversation = await ConversationRepository.createConversation(
+      conversationDataToCreate
+    );
+    if (!newConversation) {
+      throw new InternalServerError("Error creating conversation");
+    }
+    return newConversation;
+  }
+
+  static async findConversationById(id: mongoose.Types.ObjectId) {
+    if (!id) {
+      throw new BadRequestError("Missing conversationId");
+    }
+    const conversation = await ConversationRepository.findConversationById(
+      id as mongoose.Types.ObjectId
+    );
+    if (!conversation) {
+      throw new NotFoundError("Conversation not found");
+    }
+    return conversation;
+  }
+
+  static async findAllConversationsByUser(userId: mongoose.Types.ObjectId) {
+    if (!userId) {
+      throw new BadRequestError("Missing userId");
+    }
+    const conversations: IConversationPopulated[] =
+      await ConversationRepository.findAllConversationsByUser(
+        userId as mongoose.Types.ObjectId
+      );
+    if (!conversations || conversations.length === 0) {
+      return [];
+    }
+    const formattedConversations: ConversationListItem[] = conversations.map(
+      (conv) => {
+        const otherUser = conv.participants.find(
+          (participant: IUser) =>
+            participant._id?.toString() !== userId.toString()
+        );
+        if (!otherUser) {
+          throw new NotFoundError(
+            "Other user not found in conversation participants"
+          );
+        }
+        return {
+          _id: conv._id || "",
+          otherUser: otherUser,
+          lastMessage: conv.lastMessage,
+          lastMessageAt: conv.lastMessageAt,
+        };
+      }
+    );
+    return formattedConversations;
+  }
+
+  static async findConversationByParticipants(
+    participantId1: mongoose.Types.ObjectId,
+    participantId2: mongoose.Types.ObjectId
+  ) {
+    if (!participantId1 || !participantId2) {
+      throw new BadRequestError("Missing participantId");
+    }
+    const conversation =
+      await ConversationRepository.findConversationByParticipants(
+        participantId1,
+        participantId2
+      );
+    if (!conversation) {
+      throw new NotFoundError("Conversation not found");
+    }
+    return conversation;
+  }
+
+  static async updateLastMessage(
+    conversationId: mongoose.Types.ObjectId,
+    message: IMessage
+  ) {
+    if (!conversationId || !message) {
+      throw new BadRequestError("Missing required fields");
+    }
+    const conversation = await ConversationRepository.updateLastMessage(
+      conversationId,
+      message
+    );
+    if (!conversation) {
+      throw new InternalServerError("Error updating conversation");
+    }
+    return conversation;
+  }
+
+  static async deleteConversation(conversationId: mongoose.Types.ObjectId) {
+    if (!conversationId) {
+      throw new BadRequestError("Missing conversationId");
+    }
+    await MessageRepository.deleteMessagesByConversation(conversationId);
+    const conversation = await ConversationRepository.deleteConversation(
+      conversationId
+    );
+    if (!conversation) {
+      throw new InternalServerError("Error deleting conversation");
+    }
+    return conversation;
+  }
+}
+
+export default ConversationService;
+</file>
+
+<file path="src/controllers/auth.controller.ts">
+import { NextFunction, Request, Response } from "express";
+import AuthService from "../services/auth.service";
+import envConfig from "../config/env";
+
+class AuthController {
+  static async register(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userData = await AuthService.register(request.body);
+      if (userData.success && userData.user) {
+        return response.status(201).json(userData);
+        response.redirect(envConfig.frontendUrl + "/login?from=verified_email");
+      } else {
+        console.log(response);
+        return response.status(500).json({
+          success: false,
+          message: userData.message,
+          status: 500,
+        });
+      }
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async login(request: Request, response: Response, next: NextFunction) {
+    try {
+      const userData = await AuthService.login(request.body);
+
+      return response.status(200).json({
+        success: true,
+        message: userData.message,
+        user: userData.user,
+        token: userData.token,
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async verifyEmail(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      //el token llega en la url como :verification_token
+      const token = request.params.verification_token;
+      if (!token) {
+        return response.status(400).json({
+          success: false,
+          message: "Token no encontrado",
+          status: 400,
+        });
+      }
+      const userData = await AuthService.verifyEmail(token);
+      return response.redirect(envConfig.frontendUrl + "/login?from=verified_email");
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async getProfile(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    // obtiene el usuario de req.user
+    try {
+      const userData = request.user;
+      if (!userData) {
+        return response.status(401).json({
+          success: false,
+          message: "No autorizado",
+          status: 401,
+        });
+      }
+
+      return response.status(200).json({
+        success: true,
+        message: "Usuario obtenido exitosamente",
+        user: userData,
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async updateProfile(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userId = request.user.userId;
+      const { name, avatar } = request.body;
+
+      const result = await AuthService.updateProfile(userId, { name, avatar });
+
+      response.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async searchUsers(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { query } = request.query;
+      const userId = request.user.userId;
+
+      if (!query || typeof query !== "string") {
+        return response.status(400).json({
+          success: false,
+          message: "Query parameter is required",
+        });
+      }
+
+      const result = await AuthService.searchUsers(query, userId);
+
+      response.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+}
+
+export default AuthController;
+</file>
+
+<file path="src/repositories/user.repository.ts">
+import mongoose from "mongoose";
+import Users from "../models/User.model";
+import { IUser } from "../types";
+
+class UserRepository {
+  static async createUser(userData: IUser) {
+    try {
+      return await Users.insertOne(userData);
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo crear el usuario", error);
+      throw error;
+    }
+  }
+
+  static async findUserByEmail(
+    email: string,
+    includePassword: boolean = false
+  ) {
+    try {
+      let query;
+      if (includePassword) {
+        query = Users.findOne({ email: email, active: true })
+          .select("+password")
+          .lean();
+      } else {
+        query = Users.findOne({ email: email, active: true }).lean();
+      }
+      return await query;
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
+      throw error;
+    }
+  }
+
+  static async findUserById(id: mongoose.Types.ObjectId) {
+    try {
+      return await Users.findOne({ _id: id, active: true });
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
+      throw error;
+    }
+  }
+
+  static async updateUser(
+    userId: string,
+    updated_ata: { name?: string; avatar?: string }
+  ) {
+    try {
+      return await Users.findByIdAndUpdate(
+        userId,
+        { $set: updated_ata },
+        { new: true, runValidators: true }
+      ).select("-password");
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo actualizar el usuario", error);
+      throw error;
+    }
+  }
+
+  static async deleteUser(id: mongoose.Types.ObjectId) {
+    try {
+      return await Users.findOneAndDelete({ _id: id, active: true });
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo eliminar el usuario", error);
+      throw error;
+    }
+  }
+
+  static async findAllUsers() {
+    try {
+      return await Users.find({ active: true });
+    } catch (error) {
+      console.error(
+        "[SERVER ERROR]: no se pudo encontrar todos los usuarios",
+        error
+      );
+      throw error;
+    }
+  }
+
+  static async findByVerificationToken(token: string) {
+    try {
+      return await Users.findOne({ verificationToken: token, active: true });
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
+      throw error;
+    }
+  }
+
+  static async searchUsers(query: string, currentUserId: string) {
+    try {
+      return await Users.find({
+        _id: { $ne: currentUserId },
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+        isVerified: true,
+      })
+        .select("name email avatar")
+        .limit(10);
+    } catch (error) {
+      console.error("[SERVER ERROR]: no se pudo encontrar el usuario", error);
+      throw error;
+    }
+  }
+}
+
+export default UserRepository;
+</file>
+
+<file path="src/server.ts">
+import express from "express";
+import cors from "cors";
+import envConfig from "./config/env";
+import { connectDB } from "./config/db";
+import authRoutes from "./routes/auth.routes";
+import { errorHandler } from "./middleware/error.middleware";
+import conversationRoutes from "./routes/conversation.routes";
+import messagesRoutes from "./routes/message.routes";
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://yap-chat-front-bojj7quyt-juanalderetes-projects.vercel.app",
+  process.env.FRONTEND_URL,
+];
+
+const app = express();
+
+app.use(express.json());
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(new Error("Not allowed by CORS"), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ message: "OK" });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messagesRoutes);
+
+app.use(errorHandler);
+
+connectDB()
+  .then(() => {
+    app.listen(envConfig.port, () => {
+      console.log(
+        `🚀 Servidor corriendo en http://localhost:${envConfig.port}`
+      );
+    });
+  })
+  .catch((error) => {
+    console.error("❌ Error al conectar a la base de datos:", error);
+    process.exit(1);
+  });
+</file>
+
+<file path="src/middleware/validator.middleware.ts">
+import { Request, Response, NextFunction } from "express";
+import { validationResult, body, param } from "express-validator";
+
+const handleValidationErrors = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      status: 400,
+      errors: errors.array(),
+    });
+  }
+
+  next();
+};
+
+// Intento de validaciones con express-validator
+
+export const validateRegister = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ min: 3 })
+    .withMessage("Name must be at least 3 characters"),
+
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Invalid email")
+    .normalizeEmail(),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateLogin = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Invalid email")
+    .normalizeEmail(),
+
+  body("password").notEmpty().withMessage("Password is required"),
+
+  handleValidationErrors,
+];
+
+export const validateVerifyEmail = [
+  body("token")
+    .trim()
+    .notEmpty()
+    .withMessage("Token is required")
+    .isLength({ min: 6 })
+    .withMessage("Token must be at least 6 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateCreateConversation = [
+  body("participantId")
+    .trim()
+    .notEmpty()
+    .withMessage("ParticipantId is required")
+    .isMongoId()
+    .withMessage("Invalid participantId")
+    .isLength({ min: 24 })
+    .withMessage("ParticipantId must be at least 24 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateConversationId = [
+  param("id")
+    .trim()
+    .notEmpty()
+    .withMessage("Id is required")
+    .isMongoId()
+    .withMessage("Invalid id")
+    .isLength({ min: 24 })
+    .withMessage("Id must be at least 24 characters"),
+
+  handleValidationErrors,
+];
+
+export const validateSendMessage = [
+  body("conversationId")
+    .notEmpty()
+    .withMessage("Conversation ID is required")
+    .isMongoId()
+    .withMessage("Invalid conversation ID"),
+
+  body("content")
+    .notEmpty()
+    .withMessage("Message content is required")
+    .trim()
+    .isLength({ min: 1, max: 5000 })
+    .withMessage("Message must be between 1 and 5000 characters"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateGetMessages = [
+  param("conversationId").isMongoId().withMessage("Invalid conversation ID"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateMessageId = [
+  param("id").isMongoId().withMessage("Invalid message ID"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateUpdateProfile = [
+  body("name")
+    .optional()
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage("Name must be at least 2 characters"),
+
+  body("avatar").optional().trim().isLength({ min: 2 }),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateUpdateMessage = [
+  param('id')
+    .isMongoId().withMessage('Invalid message ID'),
+  
+  body('content')
+    .notEmpty().withMessage('Message content is required')
+    .trim()
+    .isLength({ min: 1, max: 5000 }).withMessage('Message must be between 1 and 5000 characters'),
+  
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+    next();
+  }
+];
+</file>
+
+<file path="src/types/index.ts">
+import mongoose from "mongoose";
+
+export interface IUser {
+  _id?: mongoose.Types.ObjectId | string;
+  name: string;
+  email: string;
+  password: string;
+  avatar?: string;
+  isVerified: boolean;
+  verificationToken?: string;
+  created_at: Date;
+  updated_at?: Date;
+  active: boolean;
+}
+
+export interface IMessage {
+  _id?: mongoose.Types.ObjectId | string;
+  senderId: mongoose.Types.ObjectId | string;
+  conversationId: mongoose.Types.ObjectId | string;
+  content: string;
+  isRead?: Boolean;
+  readAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface IConversation {
+  _id?: mongoose.Types.ObjectId | string;
+  name?: string;
+  participants: (mongoose.Types.ObjectId | string)[];
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  messages?: IMessage[];
+  created_at?: Date;
+  updated_at?: Date;
+  isGroup?: Boolean;
+}
+
+export interface CreateConversationDTO {
+  name: string;
+  participantId: mongoose.Types.ObjectId | string;
+}
+
+export interface ConversationResponse {
+  success: boolean;
+  conversation: IConversation;
+}
+
+export interface ConversationListItem {
+  _id: mongoose.Types.ObjectId | string;
+  otherUser: IUser;
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  unreadCount?: number;
+}
+
+export interface IConversationPopulated
+  extends Omit<IConversation, "participants"> {
+  participants: IUser[];
+}
+
+export interface SendMessageDTO {
+  conversationId: mongoose.Types.ObjectId;
+  content: string;
+}
+
+export interface MessageResponse {
+  success: boolean;
+  message: IMessage;
+}
+
+export interface MessagesListResponse {
+  success: boolean;
+  messages: IMessage[];
+}
+
+export interface IMessagePopulated extends Omit<IMessage, "senderId"> {
+  senderId: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
+}
+
+export interface UpdateMessageDTO {
+  content: string;
+}
+</file>
+
+<file path="README.md">
+# YAP Chat - Backend API
+
+API REST para sistema de mensajería en tiempo real construida con Node.js, Express y MongoDB.
+
+## 🚀 Características
+
+- ✅ Autenticación con JWT
+- ✅ Verificación de email
+- ✅ Sistema de conversaciones 1 a 1
+- ✅ Mensajería
+- ✅ Actualización de perfil
+- ✅ Búsqueda de usuarios
+- ✅ Edición y eliminación de mensajes
+- ✅ Arquitectura en capas (Routes → Controllers → Services → Repositories)
+- ✅ Validaciones con express-validator
+- ✅ TypeScript
+- ✅ Manejo centralizado de errores
+
+## 🛠️ Tecnologías
+
+- **Node.js** - Entorno de ejecución
+- **Express** - Framework web
+- **TypeScript** - Tipado estático
+- **MongoDB** - Base de datos NoSQL
+- **Mongoose** - ODM para MongoDB
+- **JWT** - Autenticación
+- **bcryptjs** - Hash de contraseñas
+- **nodemailer** - Envío de emails
+- **express-validator** - Validaciones
+
+## ⚙️ Instalación
+
+1. Clonar el repositorio:
+
+```bash
+git clone https://github.com/JuanAlderete/yap-chat-backend.git
+cd yap-chat-backend
+```
+
+2. Instalar dependencias:
+
+```bash
+npm install
+# o
+pnpm install
+```
+
+3. Crear archivo `.env` con las siguientes variables:
+
+```env
+PORT=3000
+MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/dbname
+JWT_SECRET=tu_secreto_super_seguro_aqui
+JWT_EXPIRE=7d o 86400
+EMAIL_HOST=gmail
+EMAIL_PORT=587
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASS=tu_password_de_aplicacion
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3000
+NODE_ENV=development
+```
+
+### Configuración de Email (Gmail)
+
+Para enviar emails de verificación, necesitas:
+
+1. Habilitar "Verificación en 2 pasos" en tu cuenta de Google
+2. Generar una "Contraseña de aplicación":
+
+   - Ve a [Configuración de Google](https://myaccount.google.com/security)
+   - Busca "Contraseñas de aplicaciones"
+   - Crea una nueva para "Correo"
+   - Usa esa contraseña en `EMAIL_PASS`
+
+3. Iniciar servidor de desarrollo:
+
+```bash
+npm run dev
+```
+
+5. Compilar para producción:
+
+```bash
+npm run build
+npm start
+```
+
+## 📡 API Endpoints
+
+### Base URL
+
+```
+http://localhost:3000/api
+```
+
+---
+
+### 🔍 Health Check
+
+```http
+GET /api/health
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "message": "OK"
+}
+```
+
+Endpoint público para verificar que el servidor está funcionando.
+
+---
+
+### 🔐 Autenticación (`/auth`)
+
+#### 1. Registrar Usuario
+
+```http
+POST /auth/register
+```
+
+**Body:**
+
+```json
+{
+  "name": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "123456"
+}
+```
+
+**Respuesta exitosa (201):**
+
+```json
+{
+  "success": true,
+  "message": "Usuario registrado. Revisa tu email para verificar tu cuenta.",
+  "user": {
+    "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "isVerified": false,
+    "created_at": "2024-11-21T10:30:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `400` - Email ya existe
+- `400` - Datos inválidos (validación)
+
+---
+
+#### 2. Verificar Email
+
+```http
+GET /auth/verify-email/:token
+```
+
+**Parámetros:**
+
+- `token` - Token de verificación enviado por email
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": "Email verificado exitosamente"
+}
+```
+
+**Errores:**
+
+- `400` - Token inválido o expirado
+
+---
+
+#### 3. Iniciar Sesión
+
+```http
+POST /auth/login
+```
+
+**Body:**
+
+```json
+{
+  "email": "juan@example.com",
+  "password": "123456"
+}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "user": {
+    "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "avatar": "https://...",
+    "isVerified": true
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Errores:**
+
+- `400` - Email no verificado
+- `401` - Credenciales incorrectas
+- `404` - Usuario no encontrado
+
+---
+
+#### 4. Obtener Perfil (Protegido)
+
+```http
+GET /auth/profile
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "user": {
+    "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "avatar": "https://...",
+    "isVerified": true
+  }
+}
+```
+
+**Errores:**
+
+- `401` - Token inválido o expirado
+
+---
+
+#### 5. Actualizar Perfil (Protegido)
+
+```http
+PUT /auth/profile
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body:**
+
+```json
+{
+  "name": "Juan Alderete",
+  "avatar": "data:image/png;base64,..."
+}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "user": {
+    "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+    "name": "Juan Alderete",
+    "email": "juan@example.com",
+    "avatar": "data:image/png;base64,...",
+    "isVerified": true
+  }
+}
+```
+
+**Errores:**
+
+- `400` - Datos inválidos
+- `401` - No autenticado
+
+---
+
+### 👥 Usuarios (`/auth/users`)
+
+#### Buscar Usuarios
+
+```http
+GET /auth/users/search?query={query}
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Query Params:**
+
+- `query` - Término de búsqueda (mínimo 2 caracteres)
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "_id": "673f8a1b2c3d4e5f6a7b8c9e",
+      "name": "María García",
+      "email": "maria@example.com",
+      "avatar": "https://..."
+    }
+  ]
+}
+```
+
+**Errores:**
+
+- `400` - Query muy corta (menos de 2 caracteres)
+- `401` - No autenticado
+
+**Notas:**
+
+- Busca por nombre o email
+- Excluye al usuario actual
+- Solo muestra usuarios verificados
+- Máximo 10 resultados
+
+---
+
+### 💬 Conversaciones (`/conversations`)
+
+> **Nota:** Todos los endpoints requieren autenticación
+
+#### 1. Crear o Obtener Conversación
+
+```http
+POST /conversations
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body:**
+
+```json
+{
+  "participantId": "673f8a1b2c3d4e5f6a7b8c9e"
+}
+```
+
+**Respuesta exitosa (201):**
+
+```json
+{
+  "success": true,
+  "conversation": {
+    "_id": "673f9b2c3d4e5f6a7b8c9d0e",
+    "participants": [
+      {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+        "name": "Juan Pérez",
+        "email": "juan@example.com",
+        "avatar": "https://..."
+      },
+      {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9e",
+        "name": "María García",
+        "email": "maria@example.com",
+        "avatar": "https://..."
+      }
+    ],
+    "lastMessage": null,
+    "lastMessageAt": null,
+    "created_at": "2024-11-21T10:45:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `400` - No puedes crear conversación contigo mismo
+- `400` - Participant ID inválido
+- `404` - Usuario participante no encontrado
+- `409` - La conversación ya existe
+
+---
+
+#### 2. Listar Mis Conversaciones
+
+```http
+GET /conversations
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "conversations": [
+    {
+      "_id": "673f9b2c3d4e5f6a7b8c9d0e",
+      "otherUser": {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9e",
+        "name": "María García",
+        "email": "maria@example.com",
+        "avatar": "https://..."
+      },
+      "lastMessage": "Hola, ¿cómo estás?",
+      "lastMessageAt": "2024-11-21T11:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+#### 3. Obtener Conversación por ID
+
+```http
+GET /conversations/:id
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros:**
+
+- `id` - ID de la conversación
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "conversation": {
+    "_id": "673f9b2c3d4e5f6a7b8c9d0e",
+    "participants": [
+      {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+        "name": "Juan Pérez",
+        "email": "juan@example.com"
+      },
+      {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9e",
+        "name": "María García",
+        "email": "maria@example.com"
+      }
+    ],
+    "lastMessage": "Hola, ¿cómo estás?",
+    "lastMessageAt": "2024-11-21T11:00:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `403` - No tienes acceso a esta conversación
+- `404` - Conversación no encontrada
+
+---
+
+#### 4. Eliminar Conversación
+
+```http
+DELETE /conversations/:id
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros:**
+
+- `id` - ID de la conversación
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": "Conversation and messages deleted successfully"
+}
+```
+
+**Errores:**
+
+- `403` - No tienes acceso a esta conversación
+- `404` - Conversación no encontrada
+
+---
+
+### 📨 Mensajes (`/messages`)
+
+> **Nota:** Todos los endpoints requieren autenticación
+
+#### 1. Enviar Mensaje
+
+```http
+POST /messages
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body:**
+
+```json
+{
+  "conversationId": "673f9b2c3d4e5f6a7b8c9d0e",
+  "content": "Hola, ¿cómo estás?"
+}
+```
+
+**Respuesta exitosa (201):**
+
+```json
+{
+  "success": true,
+  "message": {
+    "_id": "673fa1c3d4e5f6a7b8c9d0f",
+    "conversationId": "673f9b2c3d4e5f6a7b8c9d0e",
+    "senderId": "673f8a1b2c3d4e5f6a7b8c9d",
+    "content": "Hola, ¿cómo estás?",
+    "isRead": false,
+    "created_at": "2024-11-21T11:00:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `400` - Contenido vacío o muy largo (máx 5000 caracteres)
+- `403` - No eres participante de esta conversación
+- `404` - Conversación no encontrada
+
+---
+
+#### 2. Obtener Mensajes de una Conversación
+
+```http
+GET /messages/:conversationId?page=1&limit=50
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros de URL:**
+
+- `conversationId` - ID de la conversación
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "messages": [
+    {
+      "_id": "673fa1c3d4e5f6a7b8c9d0f",
+      "conversationId": "673f9b2c3d4e5f6a7b8c9d0e",
+      "senderId": {
+        "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+        "name": "Juan Pérez",
+        "avatar": "https://..."
+      },
+      "content": "Hola, ¿cómo estás?",
+      "isRead": true,
+      "readAt": "2024-11-21T11:01:00.000Z",
+      "created_at": "2024-11-21T11:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Nota:** Los mensajes se marcan automáticamente como leídos al obtenerlos.
+
+**Errores:**
+
+- `403` - No eres participante de esta conversación
+- `404` - Conversación no encontrada
+
+---
+
+#### 3. Actualizar Mensaje
+
+```http
+PUT /messages/:id
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros:**
+
+- `id` - ID del mensaje
+
+**Body:**
+
+```json
+{
+  "content": "Mensaje editado"
+}
+```
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": {
+    "_id": "673fa1c3d4e5f6a7b8c9d0f",
+    "conversationId": "673f9b2c3d4e5f6a7b8c9d0e",
+    "senderId": {
+      "_id": "673f8a1b2c3d4e5f6a7b8c9d",
+      "name": "Juan Pérez",
+      "avatar": "https://..."
+    },
+    "content": "Mensaje editado",
+    "updated_at": "2024-11-21T11:05:00.000Z",
+    "created_at": "2024-11-21T11:00:00.000Z"
+  }
+}
+```
+
+**Errores:**
+
+- `400` - Contenido vacío o muy largo (máx 5000 caracteres)
+- `403` - Solo puedes editar tus propios mensajes
+- `404` - Mensaje no encontrado
+
+---
+
+#### 4. Eliminar Mensaje
+
+```http
+DELETE /messages/:id
+```
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Parámetros:**
+
+- `id` - ID del mensaje
+
+**Respuesta exitosa (200):**
+
+```json
+{
+  "success": true,
+  "message": "Message deleted successfully"
+}
+```
+
+**Errores:**
+
+- `403` - Solo puedes eliminar tus propios mensajes
+- `404` - Mensaje no encontrado
+
+---
+
+## 🗄️ Estructura de la Base de Datos
+
+### Colección: `users`
+
+```javascript
+{
+  _id: ObjectId,
+  name: String,              // Nombre completo
+  email: String,             // Único, índice
+  password: String,          // Hasheado con bcrypt
+  avatar: String,            // URL o Base64 (opcional)
+  isVerified: Boolean,       // Default: false
+  verificationToken: String, // Token para verificar email
+  created_at: Date,
+  updated_at: Date
+}
+```
+
+### Colección: `conversations`
+
+```javascript
+{
+  _id: ObjectId,
+  participants: [ObjectId],  // Array de 2 user IDs
+  lastMessage: String,       // Contenido del último mensaje
+  lastMessageAt: Date,       // Fecha del último mensaje
+  created_at: Date,
+  updated_at: Date
+}
+```
+
+### Colección: `messages`
+
+```javascript
+{
+  _id: ObjectId,
+  conversationId: ObjectId,  // Referencia a conversation
+  senderId: ObjectId,        // Referencia a user
+  content: String,           // Texto del mensaje
+  isRead: Boolean,           // Default: false
+  readAt: Date,              // Cuando fue leído
+  created_at: Date,
+  updated_at: Date
+}
+```
+
+---
+
+## 🔒 Autenticación
+
+Todos los endpoints protegidos requieren un token JWT en el header:
+
+```
+Authorization: Bearer {token}
+```
+
+El token se obtiene al hacer login y tiene una expiración de 7 días (configurable en `.env`).
+
+---
+
+## ✅ Códigos de Estado HTTP
+
+- `200` - Éxito
+- `201` - Recurso creado
+- `400` - Solicitud incorrecta (validación)
+- `401` - No autenticado
+- `403` - No autorizado
+- `404` - Recurso no encontrado
+- `409` - Conflicto (recurso ya existe o acción no permitida)
+- `500` - Error del servidor
+
+---
+
+## 📝 Notas Importantes
+
+1. **Verificación de email**: Los usuarios deben verificar su email antes de poder iniciar sesión
+2. **Conversaciones 1 a 1**: Solo se permiten conversaciones entre 2 usuarios
+3. **Marcar como leído**: Los mensajes se marcan automáticamente como leídos al obtenerlos
+4. **Eliminación en cascada**: Al eliminar una conversación, también se eliminan sus mensajes
+5. **Actualización de mensajes**: Solo puedes editar tus propios mensajes. El campo `updated_at` se actualiza automáticamente
+6. **Búsqueda de usuarios**: La búsqueda es case-insensitive y busca coincidencias parciales en nombre y email
+7. **Límite de contenido**: Los mensajes tienen un límite de 5000 caracteres
+8. **CORS**: El backend acepta peticiones desde los orígenes configurados en `allowedOrigins` (ver `src/server.ts`)
+
+---
+
+## 🧪 Probando la API
+
+### Con Postman
+
+1. Importa la colección de Postman (archivo `postman_collection.json`)
+2. Configura la variable `baseUrl` según tu entorno:
+   - Desarrollo: `http://localhost:3000/api`
+   - Producción: `https://tu-dominio.com/api`
+3. Ejecuta primero "Register" y luego "Login" para obtener el token
+4. El token se guarda automáticamente en las variables de colección
+
+### Con cURL
+
+```bash
+# Registrar usuario
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "password": "123456"
+  }'
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "juan@example.com",
+    "password": "123456"
+  }'
+
+# Obtener perfil (reemplaza {token} con el token obtenido en login)
+curl -X GET http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer {token}"
+```
+
+---
+
+## 🚀 Deploy
+
+El backend está preparado para deploy en:
+
+- **Render** (recomendado)
+- **Railway**
+- **Heroku**
+- **Vercel** (solo funciones serverless)
+
+### Configuración de Variables de Entorno en Render
+
+1. Ve a tu servicio en Render
+2. Settings → Environment
+3. Agrega todas las variables del archivo `.env.example`
+4. **IMPORTANTE**: Configura `BACKEND_URL` con la URL de tu deploy en Render
+   - Ejemplo: `https://yap-chat-api.onrender.com`
+
+Variables de entorno necesarias en producción:
+
+- Todas las del archivo `.env`
+- `NODE_ENV=production`
+
+### Verificación del Deploy
+
+Una vez desplegado, verifica que funciona:
+
+```bash
+curl https://tu-dominio.onrender.com/api/health
+```
+
+Deberías recibir: `{"message":"OK"}`
+
+---
+
+## 📦 Estructura del Proyecto
+
+```
+yap-chat-backend/
+├── src/
+│   ├── config/          # Configuraciones (DB, env)
+│   ├── controllers/     # Controladores de rutas
+│   ├── middleware/      # Middlewares (auth, validación, errores)
+│   ├── models/          # Modelos de Mongoose
+│   ├── repositories/    # Capa de acceso a datos
+│   ├── routes/          # Definición de rutas
+│   ├── services/        # Lógica de negocio
+│   ├── types/           # Tipos e interfaces de TypeScript
+│   ├── utils/           # Utilidades (JWT, email, validadores)
+│   └── server.ts        # Punto de entrada de la aplicación
+├── .env.example         # Variables de entorno de ejemplo
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+---
+
+## 🐛 Solución de Problemas Comunes
+
+### Error: "Missing required environment variables"
+
+- Verifica que todas las variables del `.env` estén configuradas
+- Asegúrate de que `MONGODB_URI` y `JWT_SECRET` no estén vacíos
+
+### Error: "❌ Error al conectar a la base de datos"
+
+- Verifica que tu IP esté en la whitelist de MongoDB Atlas
+- Revisa que la URI de MongoDB sea correcta
+- Comprueba que el usuario y contraseña de MongoDB sean correctos
+
+### Error: "Invalid token" o "Token expired"
+
+- El token JWT expira según `JWT_EXPIRE` (default 7 días)
+- Haz login nuevamente para obtener un token nuevo
+
+### Error al enviar emails
+
+- Verifica que uses una "Contraseña de aplicación" de Gmail, no tu contraseña normal
+- Asegúrate de tener habilitada la verificación en 2 pasos en Google
+- Revisa que `EMAIL_HOST`, `EMAIL_USER` y `EMAIL_PASS` estén correctos
+
+### CORS Error en frontend
+
+- Agrega la URL de tu frontend a `allowedOrigins` en `src/server.ts`
+- Si es local: `http://localhost:PUERTO`
+- Si es producción: la URL completa de tu deploy
+
+---
+
+## 👨‍💻 Autor
+
+**Juan Alderete**
+
+- GitHub: [@JuanAlderete](https://github.com/JuanAlderete)
+- Proyecto: [yap-chat-backend](https://github.com/JuanAlderete/yap-chat-backend)
+- Postman collection: [YAP-Chat-API.postman_collection.json](https://github.com/JuanAlderete/yap-chat-backend/blob/master/docs/YAP-Chat-API.postman_collection.json)
+
+---
+
+## 🤝 Contribuciones
+
+Este proyecto es parte de un trabajo final de curso. No se aceptan contribuciones externas en este momento.
+
+## Notas
+
+El backend decidi hacerlo con typescript, ya que yo tengo 3 años de experiencia en frontend con angular. Por lo que me pareció una buena opción aceptar el reto de typescript y realizar el backend con este lenguaje.
+</file>
+
+<file path="src/services/auth.service.ts">
+import UserRepository from "../repositories/user.repository";
+import { LoginDTO, RegisterDTO, UpdateProfileDTO } from "../types/auth.types";
+import { sendVerificationEmail } from "../utils/email.util";
+import { generateToken } from "../utils/jwt.util";
+import { generateRandomToken } from "../utils/crypto.util";
+import bcrypt from "bcryptjs";
+import {
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../utils/appError.util";
+
+class AuthService {
+  static async register(registerData: RegisterDTO) {
+    if (!registerData.name || !registerData.email || !registerData.password) {
+      throw new BadRequestError("Missing required fields");
+    }
+    const hasEmail = await UserRepository.findUserByEmail(registerData.email);
+    if (hasEmail) {
+      throw new ConflictError("Email already exists");
+    }
+    const hashedPassword = await bcrypt.hash(registerData.password, 12);
+    const verificationToken = generateRandomToken();
+    const user = await UserRepository.createUser({
+      name: registerData.name,
+      email: registerData.email,
+      password: hashedPassword,
+      isVerified: false,
+      verificationToken: verificationToken,
+      active: true,
+      created_at: new Date(),
+    });
+    if (!user) {
+      throw new InternalServerError("Error creating user");
+    }
+    sendVerificationEmail(registerData.email, verificationToken);
+    const { password, verificationToken: token, ...safeUser } = user;
+    return {
+      success: true,
+      message: "Usuario registrado. Revisa tu email para verificar tu cuenta.",
+      user: safeUser,
+    };
+  }
+
+  static async login(loginData: LoginDTO) {
+    if (!loginData.email || !loginData.password) {
+      throw new BadRequestError("Missing required fields");
+    }
+    const user = await UserRepository.findUserByEmail(loginData.email, true);
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    const isPasswordCorrect = await bcrypt.compare(
+      loginData.password,
+      user.password
+    );
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedError("Incorrect password");
+    }
+    if (!user.isVerified) {
+      throw new UnauthorizedError("User not verified");
+    }
+    const token = generateToken({
+      userId: user._id.toString(),
+      email: user.email,
+    });
+    const { password, ...safeUser } = user;
+    return {
+      success: true,
+      message: "Login exitoso",
+      user: safeUser,
+      token,
+    };
+  }
+
+  static async verifyEmail(token: string) {
+    if (!token) throw new BadRequestError("Missing token");
+
+    const user = await UserRepository.findByVerificationToken(token);
+    if (!user) throw new NotFoundError("Invalid token");
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+    const { password, ...safeUser } = user.toObject();
+
+    return {
+      success: true,
+      message: "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.",
+      user: safeUser,
+    };
+  }
+
+  static async updateProfile(userId: string, updated_ata: UpdateProfileDTO) {
+    if (!updated_ata.name && !updated_ata.avatar) {
+      throw new BadRequestError("No data provided for update");
+    }
+    const updatedUser = await UserRepository.updateUser(userId, updated_ata);
+    if (!updatedUser) {
+      throw new NotFoundError("User not found");
+    }
+    return {
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    };
+  }
+
+  static async searchUsers(query: string, currentUserId: string) {
+    if (!query || query.trim().length < 2) {
+      throw new BadRequestError("Query must be at least 2 characters");
+    }
+
+    const users = await UserRepository.searchUsers(query.trim(), currentUserId);
+
+    return {
+      success: true,
+      users,
+    };
+  }
+}
+
+export default AuthService;
+</file>
+
+</files>

@@ -1,5 +1,7 @@
 # YAP Chat - Backend API
 
+[![Deploy Status](https://img.shields.io/badge/deploy-render-46E3B7?logo=render&logoColor=white)](https://yap-chat-api.onrender.com)
+
 API REST para sistema de mensajería en tiempo real construida con Node.js, Express y MongoDB.
 
 ## 🚀 Características
@@ -915,6 +917,56 @@ yap-chat-backend/
 
 ---
 
+## 🏗️ Decisiones Técnicas
+
+### Arquitectura en capas (Routes → Controllers → Services → Repositories)
+
+Se adoptó una arquitectura en capas inspirada en el principio de responsabilidad única (SRP):
+
+- **Routes**: solo definen los endpoints y aplican middlewares.
+- **Controllers**: reciben el request y delegan al service, sin lógica de negocio.
+- **Services**: contienen toda la lógica de negocio y orquestan llamadas a repositories.
+- **Repositories**: son la única capa que interactúa con la base de datos.
+
+Esto facilita el testing (se puede mockear cada capa), mejora la mantenibilidad y permite reemplazar partes sin afectar al resto.
+
+### TypeScript en el backend
+
+TypeScript aporta tipado estático que atrapa errores en tiempo de compilación en lugar de en runtime. En un backend REST esto es especialmente valioso porque:
+
+- Los DTOs y types de respuesta quedan documentados en el código.
+- Los errores de refactor (cambiar el nombre de un campo) se detectan inmediatamente.
+- Mejora el autocompletado y la navegación en el editor, reduciendo la fricción al desarrollar.
+
+### MongoDB
+
+MongoDB fue elegido por:
+
+- **Flexibilidad del schema**: el perfil de usuario y los mensajes caben naturalmente en documentos JSON.
+- **Velocidad de iteración**: no requiere migraciones de esquema durante el desarrollo inicial.
+- **Escalabilidad horizontal**: MongoDB Atlas permite escalar sin cambiar la arquitectura.
+- **Integración con Mongoose**: el ODM provee validaciones, hooks y población de referencias de forma sencilla.
+
+---
+
+## 🔑 Variables de entorno
+
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `PORT` | Puerto en que escucha el servidor | `3000` |
+| `MONGODB_URI` | URI de conexión a MongoDB | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
+| `JWT_SECRET` | Secreto para firmar tokens JWT | `un_secreto_largo_y_aleatorio` |
+| `JWT_EXPIRE` | Tiempo de expiración del token JWT | `7d` o `86400` |
+| `EMAIL_HOST` | Host del servidor de correo | `gmail` |
+| `EMAIL_PORT` | Puerto SMTP | `587` |
+| `EMAIL_USER` | Usuario/dirección del remitente | `tu@gmail.com` |
+| `EMAIL_PASS` | Contraseña de aplicación del email | `abcd efgh ijkl mnop` |
+| `FRONTEND_URL` | URL del frontend (para CORS y redirecciones) | `https://yap-chat.vercel.app` |
+| `BACKEND_URL` | URL pública del propio backend | `https://yap-chat-api.onrender.com` |
+| `NODE_ENV` | Entorno de ejecución | `development` o `production` |
+
+---
+
 ## 👨‍💻 Autor
 
 **Juan Alderete**
@@ -932,3 +984,5 @@ Este proyecto es parte de un trabajo final de curso. No se aceptan contribucione
 ## Notas
 
 El backend decidi hacerlo con typescript, ya que yo tengo 3 años de experiencia en frontend con angular. Por lo que me pareció una buena opción aceptar el reto de typescript y realizar el backend con este lenguaje.
+
+---

@@ -12,7 +12,6 @@ class AuthController {
       const userData = await AuthService.register(request.body);
       if (userData.success && userData.user) {
         return response.status(201).json(userData);
-        response.redirect(envConfig.frontendUrl + "/login?from=verified_email");
       } else {
         console.log(response);
         return response.status(500).json({

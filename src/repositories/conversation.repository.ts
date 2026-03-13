@@ -36,10 +36,7 @@ class ConversationRepository {
   ) {
     try {
       return await Conversations.findOne({
-        $or: [
-          { participants: participantId1 },
-          { participants: participantId2 },
-        ],
+        participants: { $all: [participantId1, participantId2] },
       }).populate("participants");
     } catch (error) {
       console.error(

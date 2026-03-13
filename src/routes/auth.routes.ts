@@ -7,14 +7,15 @@ import {
 } from "../middleware/validator.middleware";
 import authMiddleware from "../middleware/auth.middleware";
 import authenticate from "../middleware/auth.middleware";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 
 const authRoutes: express.Router = express.Router();
 
-authRoutes.post("/register", validateRegister, AuthController.register);
+authRoutes.post("/register", authLimiter, validateRegister, AuthController.register);
 
 authRoutes.get("/verify-email/:verification_token", AuthController.verifyEmail);
 
-authRoutes.post("/login", validateLogin, AuthController.login);
+authRoutes.post("/login", authLimiter, validateLogin, AuthController.login);
 
 authRoutes.get("/profile", authMiddleware, AuthController.getProfile);
 

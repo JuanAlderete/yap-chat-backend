@@ -9,7 +9,8 @@
       "ES2020"
     ],
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "sourceMap": true,
     "declaration": true,

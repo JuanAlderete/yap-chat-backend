@@ -1,20 +1,27 @@
 import express from "express";
 import cors from "cors";
+import http from "http";
+import helmet from "helmet";
 import envConfig from "./config/env";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/error.middleware";
 import conversationRoutes from "./routes/conversation.routes";
 import messagesRoutes from "./routes/message.routes";
+import { generalLimiter } from "./middleware/rateLimit.middleware";
+import { initSocket } from "./modules/websocket/socket.manager";
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://192.168.0.198:5173", // Añadido para pruebas en red local
   "https://yap-chat-front-bojj7quyt-juanalderetes-projects.vercel.app",
   process.env.FRONTEND_URL,
 ];
 
 const app = express();
 
+// Security
+app.use(helmet());
 app.use(express.json());
 
 app.use(
@@ -30,6 +37,9 @@ app.use(
   })
 );
 
+// General rate limiting
+app.use(generalLimiter);
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "OK" });
 });
@@ -40,9 +50,13 @@ app.use("/api/messages", messagesRoutes);
 
 app.use(errorHandler);
 
+// HTTP Server + Socket.io
+const server = http.createServer(app);
+initSocket(server, allowedOrigins);
+
 connectDB()
   .then(() => {
-    app.listen(envConfig.port, () => {
+    server.listen(envConfig.port, () => {
       console.log(
         `🚀 Servidor corriendo en http://localhost:${envConfig.port}`
       );
