@@ -30,7 +30,7 @@ class MessageController {
     response: Response,
     next: NextFunction
   ) {
-    const conversationId = request.params.conversationId;
+    const conversationId = request.params.conversationId as string;
     const userId = request.user.userId;
     try {
       if (!conversationId) {
@@ -60,7 +60,7 @@ class MessageController {
     next: NextFunction
   ) {
     try {
-      const { id } = request.params;
+      const id = request.params.id as string;
       const { content } = request.body;
       const userId = request.user.userId;
       const result = await MessageService.updateMessage(id, userId, content);
@@ -76,7 +76,7 @@ class MessageController {
     response: Response,
     next: NextFunction
   ) {
-    const messageId = request.params.id;
+    const messageId = request.params.id as string;
     const userId = request.user.userId;
     try {
       const message = await MessageService.deleteMessage(messageId, userId);

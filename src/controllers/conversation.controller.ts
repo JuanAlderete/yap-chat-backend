@@ -71,7 +71,7 @@ class ConversationController {
   }
 
   static async getConversationById(request: Request, response: Response) {
-    const conversationId = request.params.id;
+    const conversationId = request.params.id as string;
     try {
       if (!conversationId) {
         return response.status(400).json({
@@ -118,7 +118,7 @@ class ConversationController {
   }
 
   static async deleteConversation(request: Request, response: Response) {
-    const conversationId = request.params.id;
+    const conversationId = request.params.id as string;
     try {
       if (!conversationId) {
         return response.status(400).json({

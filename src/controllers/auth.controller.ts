@@ -47,7 +47,7 @@ class AuthController {
   ) {
     try {
       //el token llega en la url como :verification_token
-      const token = request.params.verification_token;
+      const token = request.params.verification_token as string;
       if (!token) {
         return response.status(400).json({
           success: false,
